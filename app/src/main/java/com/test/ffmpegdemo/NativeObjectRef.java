@@ -9,7 +9,10 @@ public class NativeObjectRef {
     private boolean mRequireFreeManually;
 
     static {
-        System.loadLibrary("native-player.render");
+        System.loadLibrary("avformat");
+        System.loadLibrary("avcodec");
+        System.loadLibrary("avfilter");
+        System.loadLibrary("ffmpegdemo");
     }
 
     public long getWrapPtr() {

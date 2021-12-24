@@ -47,16 +47,13 @@ GLushort indices[] = {0, 1, 2, 0, 2, 3};
     return instance_;
 }*/
 
-//OpenGlVideoRender::OpenGlVideoRender() {
-//
-//}
 
-//OpenGlVideoRender::~OpenGlVideoRender() {
-//
-//}
+OpenGlVideoRender::~OpenGlVideoRender() {
+
+}
 
 void OpenGlVideoRender::Init(int videoWidth, int videoHeight, int *dstSize) {
-//    m_FrameIndex = 0;
+    m_FrameIndex = 0;
     UpdateMVPMatrix(0, 0, 1.0f, 1.0f);
 }
 
@@ -127,7 +124,7 @@ void OpenGlVideoRender::OnDrawFrame() {
     glClear(GL_COLOR_BUFFER_BIT);
 //    if(m_ProgramObj == GL_NONE || m_TextureId == GL_NONE || m_RenderImage.ppPlane[0] == nullptr) return;
 //    LOGCATE("OpenGLRender::OnDrawFrame [w, h]=[%d, %d]", m_RenderImage.width, m_RenderImage.height);
-//    m_FrameIndex++;
+    m_FrameIndex++;
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_TextureId);
     std::unique_lock<std::mutex> lock(mutex_);

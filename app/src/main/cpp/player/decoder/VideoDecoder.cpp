@@ -2,9 +2,9 @@
 #include "VideoDecoder.h"
 
 
-//VideoDecoder::~VideoDecoder() {
-//
-//}
+VideoDecoder::~VideoDecoder() {
+
+}
 
 void VideoDecoder::Start() {
   StartDecodingThread();
@@ -31,8 +31,9 @@ float VideoDecoder::GetDuration() {
 
 int VideoDecoder::InitFFDecoder() {
     avFormatContext_ = avformat_alloc_context();
-    if(!avformat_open_input(&avFormatContext_,url_.c_str(), nullptr, nullptr)){
-        LOGE("input open fail");
+    int result = 0;
+    if((result = avformat_open_input(&avFormatContext_,url_.c_str(), nullptr, nullptr)) != 0){
+        LOGE("input open fail : %d" ,result);
         return static_cast<int >(DecoderMsg::MSG_DECODER_INIT_ERROR);
     }
     if(avformat_find_stream_info(avFormatContext_, nullptr) < 0){
@@ -41,36 +42,30 @@ int VideoDecoder::InitFFDecoder() {
     }
     //4.获取音视频流索引
     for(int i=0; i < avFormatContext_->nb_streams; i++) {
-        if(avFormatContext_->streams[i]->codecpar->codec_type == m_MediaType) {
-            m_StreamIndex = i;
+        if(avFormatContext_->streams[i]->codecpar->codec_type == mediaType_) {
+            streamIndex_ = i;
             break;
         }
     }
-    if(m_StreamIndex == -1) {
+    if(streamIndex_ == -1) {
         LOGE("DecoderBase::InitFFDecoder Fail to find stream index.");
         return static_cast<int >(DecoderMsg::MSG_DECODER_INIT_ERROR);
     }
     //获取解码器参数
-    AVCodecParameters *codecParameters = avFormatContext_->streams[m_StreamIndex]->codecpar;
+    AVCodecParameters *codecParameters = avFormatContext_->streams[streamIndex_]->codecpar;
     avCodec_ = avcodec_find_encoder(codecParameters->codec_id);
+//    avCodec_ = avcodec_find_decoder_by_name("h264_mediacodec");
     if(avCodec_ == nullptr){
         LOGE("DecoderBase::InitFFDecoder avcodec_find_decoder fail.");
         return static_cast<int >(DecoderMsg::MSG_DECODER_INIT_ERROR);
     }
 
     avCodecContext_ = avcodec_alloc_context3(avCodec_);
-    if(avcodec_parameters_to_context(avCodecContext_, nullptr) != 0){
+    if(avcodec_parameters_to_context(avCodecContext_, codecParameters) != 0){
         LOGE("DecoderBase::InitFFDecoder avcodec_parameters_to_context fail.");
         return static_cast<int >(DecoderMsg::MSG_DECODER_INIT_ERROR);
     }
-    //设置参数
-    AVDictionary *pAVDictionary = nullptr;
-    av_dict_set(&pAVDictionary, "buffer_size", "1024000", 0);
-    av_dict_set(&pAVDictionary, "stimeout", "20000000", 0);
-    av_dict_set(&pAVDictionary, "max_delay", "30000000", 0);
-    av_dict_set(&pAVDictionary, "rtsp_transport", "tcp", 0);
-
-    int result = avcodec_open2(avCodecContext_,avCodec_,&pAVDictionary);
+    result = avcodec_open2(avCodecContext_,avCodec_, nullptr);
     if(result < 0){
         LOGE("DecoderBase::InitFFDecoder avcodec_open2 fail. result=%d", result);
         return static_cast<int >(DecoderMsg::MSG_DECODER_INIT_ERROR);
@@ -161,7 +156,7 @@ int VideoDecoder::DecodeOnePacket(){
     avFrame_ = av_frame_alloc();
     int result = av_read_frame(avFormatContext_,avPacket);
     while (result == 0){
-        if(avPacket->stream_index == m_StreamIndex){
+        if(avPacket->stream_index == streamIndex_){
             if(avcodec_send_packet(avCodecContext_,avPacket) == AVERROR_EOF){
                 result = -1;
                 goto ERROR;
@@ -197,7 +192,7 @@ void VideoDecoder::UpdateTimeStamp() {
     }else {
         currentTimeStamp = 0;
     }
-    currentTimeStamp = currentTimeStamp * av_q2d(avFormatContext_->streams[m_StreamIndex]->time_base) * 1000;
+    currentTimeStamp = currentTimeStamp * av_q2d(avFormatContext_->streams[streamIndex_]->time_base) * 1000;
 }
 
 long VideoDecoder::AVSync() {

@@ -1,24 +1,23 @@
 #include "VideoPlayer.h"
 
-VideoPlayer::~VideoPlayer() noexcept {
+VideoPlayer::~VideoPlayer() {
 
 }
 
-void VideoPlayer::Init(const std::string &url) {
+void VideoPlayer::Init(const std::string &url, const std::shared_ptr<VideoRender> &render) {
     //创建解码和渲染的对象
     videoDecoder_ = std::make_shared<VideoDecoder>(url);
-//    videoRender_ = std::make_shared<OpenGlVideoRender>();
 //    videoDecoder_.reset(OpenGlVideoRender::GetInstance());
 
     //解码器设置render
-//    videoDecoder_->SetRenderer(videoRender_);
+    videoDecoder_->SetRenderer(render);
 }
 
 void VideoPlayer::UnInit() {
-    if(videoRender_){
-        videoRender_->UnInit();
-        videoRender_ = nullptr;
-    }
+//    if(videoRender_){
+//        videoRender_->UnInit();
+//        videoRender_ = nullptr;
+//    }
     if(videoDecoder_){
 
     }
@@ -52,3 +51,15 @@ void VideoPlayer::SeekTo(float position) {
 float VideoPlayer::GetDuration() {
     return videoDecoder_->GetDuration();
 }
+
+//void VideoPlayer::OnSurfaceCreated() {
+//    videoRender_->OnSurfaceCreated();
+//}
+//
+//void VideoPlayer::OnSurfaceChanged(int width, int height) {
+//    videoRender_->OnSurfaceChanged(width,height);
+//}
+//
+//void VideoPlayer::OnDrawFrame() {
+//    videoRender_->OnDrawFrame();
+//}

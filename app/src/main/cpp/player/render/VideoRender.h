@@ -7,12 +7,11 @@
 #include "Render.h"
 
 
-//,public std::enable_shared_from_this<OpenGlVideoRender>
-class OpenGlVideoRender: public VideoRender ,public std::enable_shared_from_this<OpenGlVideoRender>{
+class OpenGlVideoRender: public GLVideoRender ,public std::enable_shared_from_this<OpenGlVideoRender>{
 public:
 //    static OpenGlVideoRender& GetInstance();
     OpenGlVideoRender(){};
-    ~OpenGlVideoRender() {};
+    ~OpenGlVideoRender();
 
     void Init(int videoWidth, int videoHeight, int *dstSize) override ;
     void RenderFrame() override ;
@@ -38,4 +37,5 @@ private:
     GLuint m_VboIds[3];
     std::mutex mutex_;
     glm::mat4 m_MVPMatrix;
+    long m_FrameIndex = 0;
 };

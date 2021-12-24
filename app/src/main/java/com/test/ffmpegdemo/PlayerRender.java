@@ -5,36 +5,39 @@ import android.opengl.GLSurfaceView;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-public class PlayerRender  extends NativeObjectRef implements GLSurfaceView.Renderer {
+public class PlayerRender extends NativeObjectRef implements GLSurfaceView.Renderer {
 
-    public PlayerRender() {
-        this(nativeCreateVertexObj());
+    static {
+        System.loadLibrary("ffmpegdemo");
     }
 
+    public PlayerRender(){
+        this(nativeCreateRender());
+    }
+
+
     private PlayerRender(long wrapPtr) {
-        super(wrapPtr, "VertexObjRender");
+        super(wrapPtr,"PlayerRender");
     }
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        nativeSurfaceCreated();
+        nativeOnSurfaceCreated();
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        nativeSurfaceChanged(width, height);
+        nativeonSurfaceChanged(width,height);
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
-        nativeDrawFrame();
+        nativeonDrawFrame();
     }
 
-    private static native long nativeCreateVertexObj();
+    private static native long nativeCreateRender();
+    private native void nativeOnSurfaceCreated();
+    private native void nativeonSurfaceChanged(int width, int height);
+    private native void nativeonDrawFrame();
 
-    private native void nativeSurfaceCreated();
-
-    private native void nativeSurfaceChanged(int width, int height);
-
-    private native void nativeDrawFrame();
 }

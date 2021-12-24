@@ -17,14 +17,14 @@ enum DecoderState {
 };
 
 enum DecoderMsg {
-    MSG_DECODER_INIT_ERROR,
+    MSG_DECODER_INIT_ERROR = 1,
     MSG_DECODER_READY,
     MSG_DECODER_DONE,
     MSG_REQUEST_RENDER,
     MSG_DECODING_TIME
 };
 
-//using FinishCallback = std::function<void(const int status, const float progress)>;
+using FinishCallback = std::function<void(const int status, const float progress)>;
 class Decoder{
 public:
 //    Decoder(){};

@@ -1,12 +1,15 @@
 package com.test.ffmpegdemo;
 
 import android.content.Context;
+import android.graphics.SurfaceTexture;
 import android.opengl.GLSurfaceView;
+import android.view.Surface;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 public class VideoPlayer extends NativeObjectRef{
+
 
     private GLSurfaceView surfaceView;
     private Context mContext;
@@ -17,9 +20,9 @@ public class VideoPlayer extends NativeObjectRef{
         this(nativeCreateVideoPlayer());
         this.mContext = context;
 
-        surfaceView = new GLSurfaceView(mContext);
-        VideoRender videoRender = new VideoRender();
-        surfaceView.setRenderer(videoRender);
+//        surfaceView = new GLSurfaceView(mContext);
+//        VideoRender videoRender = new VideoRender();
+//        surfaceView.setRenderer(videoRender);
     }
 
     private VideoPlayer(long wrapPtr) {
@@ -27,7 +30,7 @@ public class VideoPlayer extends NativeObjectRef{
     }
 
 
-    private class VideoRender implements GLSurfaceView.Renderer{
+   /* private class VideoRender implements GLSurfaceView.Renderer{
 
         @Override
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
@@ -43,7 +46,7 @@ public class VideoPlayer extends NativeObjectRef{
         public void onDrawFrame(GL10 gl) {
             nativeDrawFrame();
         }
-    }
+    }*/
 
     /**
      * 配置播放参数
@@ -53,7 +56,7 @@ public class VideoPlayer extends NativeObjectRef{
         return 0;
     }
 
-    public int Prepare(String url){
+    public int prepare(String url){
         int ret = nativePrepare(url);
         mIsPrepare = ret == 0;
         return ret;
@@ -89,14 +92,14 @@ public class VideoPlayer extends NativeObjectRef{
         super.finalize();
     }
 
+    public interface IPlayerStatusCallback{
+
+    }
+
     private static native long nativeCreateVideoPlayer();
     private native int nativePrepare(String url);
     private native void nativePlay();
     private native void nativePause();
     private native void nativeStop();
     private native void nativeRelease();
-
-    private native void nativeSurfaceCreated();
-    private native void nativeSurfaceChanged(int width, int height);
-    private native void nativeDrawFrame();
 }

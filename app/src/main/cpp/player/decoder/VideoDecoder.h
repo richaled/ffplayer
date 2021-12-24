@@ -3,7 +3,7 @@
 #include <mutex>
 #include "Decoder.h"
 #include "thread"
-//#include "../player.render/VideoRender.h"
+#include "../render/VideoRender.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -13,14 +13,14 @@ extern "C" {
 #include <libavcodec/jni.h>
 }
 
-#define DELAY_THRESHOLD 10
+#define DELAY_THRESHOLD 50
 
 
 class VideoDecoder : public Decoder{
 public:
     VideoDecoder(const std::string &url):url_(url){};
 
-    ~VideoDecoder(){};
+    ~VideoDecoder();
 
     void Start() override ;
 
@@ -32,9 +32,9 @@ public:
 
     float GetDuration() override;
 
-//    void SetRenderer(const std::shared_ptr<VideoRender> &player.render){
-//        videorender_ = std::move(player.render);
-//    };
+    void SetRenderer(const std::shared_ptr<VideoRender> &render){
+        videorender_ = render;
+    };
 
 protected:
     void OnDecoderReady();
@@ -69,8 +69,9 @@ private:
     std::mutex mutex_;
     std::condition_variable conditionVariable_;
     std::string url_;
-    AVMediaType m_MediaType = AVMEDIA_TYPE_UNKNOWN;
-    int m_StreamIndex = -1;
+//    AVMediaType mediaType_ = AVMEDIA_TYPE_UNKNOWN;
+    AVMediaType mediaType_ = AVMEDIA_TYPE_VIDEO;
+    int streamIndex_ = -1;
     long duration_;
     DecoderState decoderState_;
     //播放的起始时间
@@ -85,7 +86,7 @@ private:
     int m_RenderWidth = 0;
     int m_RenderHeight = 0;
 
-//    std::shared_ptr<VideoRender> videorender_;
+    std::shared_ptr<VideoRender> videorender_;
 };
 
 

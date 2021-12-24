@@ -46,7 +46,7 @@ typedef struct AVQSVContext {
     int iopattern;
 
     /**
-     * Extra buffers to pass to encoder or decoder initialization.
+     * Extra buffers to pass to encoder or player.decoder initialization.
      */
     mfxExtBuffer **ext_buffers;
     int         nb_ext_buffers;

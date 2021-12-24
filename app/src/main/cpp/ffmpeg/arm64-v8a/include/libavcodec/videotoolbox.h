@@ -59,7 +59,7 @@ typedef struct AVVideotoolboxContext {
     /**
      * CVPixelBuffer Format Type that Videotoolbox will use for decoded frames.
      * set by the caller. If this is set to 0, then no specific format is
-     * requested from the decoder, and its native format is output.
+     * requested from the player.decoder, and its native format is output.
      */
     OSType cv_pix_fmt_type;
 
@@ -81,10 +81,10 @@ typedef struct AVVideotoolboxContext {
  *
  * This function should be called from the get_format() callback when the caller
  * selects the AV_PIX_FMT_VIDETOOLBOX format. The caller must then create
- * the decoder object (using the output callback provided by libavcodec) that
+ * the player.decoder object (using the output callback provided by libavcodec) that
  * will be used for Videotoolbox-accelerated decoding.
  *
- * When decoding with Videotoolbox is finished, the caller must destroy the decoder
+ * When decoding with Videotoolbox is finished, the caller must destroy the player.decoder
  * object and free the Videotoolbox context using av_free().
  *
  * @return the newly allocated context or NULL on failure

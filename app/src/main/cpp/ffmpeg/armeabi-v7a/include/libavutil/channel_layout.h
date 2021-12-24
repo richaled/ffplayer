@@ -73,7 +73,7 @@
 #define AV_CH_LOW_FREQUENCY_2        0x0000000800000000ULL
 
 /** Channel mask value used for AVCodecContext.request_channel_layout
-    to indicate that the user requests the channel order of the decoder output
+    to indicate that the user requests the channel order of the player.decoder output
     to be the native codec channel order. */
 #define AV_CH_LAYOUT_NATIVE          0x8000000000000000ULL
 

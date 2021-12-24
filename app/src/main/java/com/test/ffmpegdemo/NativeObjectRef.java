@@ -9,7 +9,7 @@ public class NativeObjectRef {
     private boolean mRequireFreeManually;
 
     static {
-        System.loadLibrary("native-render");
+        System.loadLibrary("native-player.render");
     }
 
     public long getWrapPtr() {

@@ -6,7 +6,7 @@ file(GLOB_RECURSE HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-add_library(JniUtil ${SRCS} ${HEADERS})
+add_library(${PROJECT_NAME} ${SRCS} ${HEADERS})
 
 set(JNIUTIL_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}" CACHE INTERNAL "jniutils include dir")
 
@@ -15,8 +15,8 @@ find_library( # Sets the name of the path variable.
         log)
 
 target_link_libraries( # Specifies the target library.
-        JniUtil
-        PRIVATE
+        ${PROJECT_NAME}
+        PUBLIC
         android
         EGL
         GLESv3

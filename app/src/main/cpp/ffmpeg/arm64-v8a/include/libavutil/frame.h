@@ -272,7 +272,7 @@ typedef struct AVRegionOfInterest {
  *
  * AVFrame is typically allocated once and then reused multiple times to hold
  * different data (e.g. a single AVFrame to hold frames received from a
- * decoder). In such a case, av_frame_unref() will free any references held by
+ * player.decoder). In such a case, av_frame_unref() will free any references held by
  * the frame and reset it to its original clean state before it
  * is reused again.
  *
@@ -456,7 +456,7 @@ typedef struct AVFrame {
      * PTS but can be anything).
      * The user sets AVCodecContext.reordered_opaque to represent the input at
      * that time,
-     * the decoder reorders values as needed and sets AVFrame.reordered_opaque
+     * the player.decoder reorders values as needed and sets AVFrame.reordered_opaque
      * to exactly one of the values provided by the user through AVCodecContext.reordered_opaque
      */
     int64_t reordered_opaque;
@@ -559,7 +559,7 @@ typedef struct AVFrame {
     int64_t best_effort_timestamp;
 
     /**
-     * reordered pos from the last AVPacket that has been input into the decoder
+     * reordered pos from the last AVPacket that has been input into the player.decoder
      * - encoding: unused
      * - decoding: Read by user.
      */
@@ -582,7 +582,7 @@ typedef struct AVFrame {
 
     /**
      * decode error flags of the frame, set to a combination of
-     * FF_DECODE_ERROR_xxx flags if the decoder produced a frame, but there
+     * FF_DECODE_ERROR_xxx flags if the player.decoder produced a frame, but there
      * were errors during the decoding.
      * - encoding: unused
      * - decoding: set by libavcodec, read by user.

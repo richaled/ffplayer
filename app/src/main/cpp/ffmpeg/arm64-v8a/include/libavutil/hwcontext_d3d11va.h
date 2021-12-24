@@ -83,7 +83,7 @@ typedef struct AVD3D11VADeviceContext {
      * Callbacks for locking. They protect accesses to device_context and
      * video_context calls. They also protect access to the internal staging
      * texture (for av_hwframe_transfer_data() calls). They do NOT protect
-     * access to hwcontext or decoder state in general.
+     * access to hwcontext or player.decoder state in general.
      *
      * If unset on init, the hwcontext implementation will set them to use an
      * internal mutex.
@@ -147,7 +147,7 @@ typedef struct AVD3D11VAFramesContext {
      *
      * This is in particular used by the libavcodec D3D11VA hwaccel, which
      * requires a single array texture. It will create ID3D11VideoDecoderOutputView
-     * objects for each array texture element on decoder initialization.
+     * objects for each array texture element on player.decoder initialization.
      */
     ID3D11Texture2D *texture;
 

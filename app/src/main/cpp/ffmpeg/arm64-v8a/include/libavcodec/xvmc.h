@@ -103,7 +103,7 @@ struct attribute_deprecated xvmc_pix_fmt {
     */
     XvMCSurface*    p_surface;
 
-/** Set by the decoder before calling ff_draw_horiz_band(),
+/** Set by the player.decoder before calling ff_draw_horiz_band(),
     needed by the XvMCRenderSurface function. */
 //@{
     /** Pointer to the surface used as past reference

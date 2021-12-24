@@ -1,12 +1,41 @@
+///////////////////////////////////////////////////////////////////////////////////
+/// OpenGL Mathematics (glm.g-truc.net)
+///
+/// Copyright (c) 2005 - 2015 G-Truc Creation (www.g-truc.net)
+/// Permission is hereby granted, free of charge, to any person obtaining a copy
+/// of this software and associated documentation files (the "Software"), to deal
+/// in the Software without restriction, including without limitation the rights
+/// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+/// copies of the Software, and to permit persons to whom the Software is
+/// furnished to do so, subject to the following conditions:
+/// 
+/// The above copyright notice and this permission notice shall be included in
+/// all copies or substantial portions of the Software.
+/// 
+/// Restrictions:
+///		By making use of the Software for military purposes, you choose to make
+///		a Bunny unhappy.
+/// 
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+/// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+/// THE SOFTWARE.
+///
 /// @ref gtc_ulp
 /// @file glm/gtc/ulp.inl
-///
+/// @date 2011-03-07 / 2012-04-07
+/// @author Christophe Riccio
+///////////////////////////////////////////////////////////////////////////////////
 /// Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
 ///
 /// Developed at SunPro, a Sun Microsystems, Inc. business.
 /// Permission to use, copy, modify, and distribute this
 /// software is freely granted, provided that this notice
 /// is preserved.
+///////////////////////////////////////////////////////////////////////////////////
 
 #include "../detail/type_int.hpp"
 #include <cmath>
@@ -171,7 +200,7 @@ namespace detail
 
 namespace glm
 {
-	template<>
+	template <>
 	GLM_FUNC_QUALIFIER float next_float(float const & x)
 	{
 #		if GLM_HAS_CXX11_STL
@@ -185,7 +214,7 @@ namespace glm
 #		endif
 	}
 
-	template<>
+	template <>
 	GLM_FUNC_QUALIFIER double next_float(double const & x)
 	{
 #		if GLM_HAS_CXX11_STL
@@ -199,11 +228,11 @@ namespace glm
 #		endif
 	}
 
-	template<length_t L, typename T, precision P, template<length_t, typename, precision> class vecType>
-	GLM_FUNC_QUALIFIER vecType<L, T, P> next_float(vecType<L, T, P> const & x)
+	template<typename T, precision P, template<typename, precision> class vecType>
+	GLM_FUNC_QUALIFIER vecType<T, P> next_float(vecType<T, P> const & x)
 	{
-		vecType<L, T, P> Result(uninitialize);
-		for(length_t i = 0, n = Result.length(); i < n; ++i)
+		vecType<T, P> Result(uninitialize);
+		for(detail::component_count_t i = 0; i < detail::component_count(Result); ++i)
 			Result[i] = next_float(x[i]);
 		return Result;
 	}
@@ -234,16 +263,16 @@ namespace glm
 #		endif
 	}
 
-	template<length_t L, typename T, precision P, template<length_t, typename, precision> class vecType>
-	GLM_FUNC_QUALIFIER vecType<L, T, P> prev_float(vecType<L, T, P> const & x)
+	template<typename T, precision P, template<typename, precision> class vecType>
+	GLM_FUNC_QUALIFIER vecType<T, P> prev_float(vecType<T, P> const & x)
 	{
-		vecType<L, T, P> Result(uninitialize);
-		for(length_t i = 0, n = Result.length(); i < n; ++i)
+		vecType<T, P> Result(uninitialize);
+		for(detail::component_count_t i = 0; i < detail::component_count(Result); ++i)
 			Result[i] = prev_float(x[i]);
 		return Result;
 	}
 
-	template<typename T>
+	template <typename T>
 	GLM_FUNC_QUALIFIER T next_float(T const & x, uint const & ulps)
 	{
 		T temp = x;
@@ -252,16 +281,16 @@ namespace glm
 		return temp;
 	}
 
-	template<length_t L, typename T, precision P, template<length_t, typename, precision> class vecType>
-	GLM_FUNC_QUALIFIER vecType<L, T, P> next_float(vecType<L, T, P> const & x, vecType<L, uint, P> const & ulps)
+	template<typename T, precision P, template<typename, precision> class vecType>
+	GLM_FUNC_QUALIFIER vecType<T, P> next_float(vecType<T, P> const & x, vecType<uint, P> const & ulps)
 	{
-		vecType<L, T, P> Result(uninitialize);
-		for(length_t i = 0, n = Result.length(); i < n; ++i)
+		vecType<T, P> Result(uninitialize);
+		for(detail::component_count_t i = 0; i < detail::component_count(Result); ++i)
 			Result[i] = next_float(x[i], ulps[i]);
 		return Result;
 	}
 
-	template<typename T>
+	template <typename T>
 	GLM_FUNC_QUALIFIER T prev_float(T const & x, uint const & ulps)
 	{
 		T temp = x;
@@ -270,16 +299,16 @@ namespace glm
 		return temp;
 	}
 
-	template<length_t L, typename T, precision P, template<length_t, typename, precision> class vecType>
-	GLM_FUNC_QUALIFIER vecType<L, T, P> prev_float(vecType<L, T, P> const & x, vecType<L, uint, P> const & ulps)
+	template<typename T, precision P, template<typename, precision> class vecType>
+	GLM_FUNC_QUALIFIER vecType<T, P> prev_float(vecType<T, P> const & x, vecType<uint, P> const & ulps)
 	{
-		vecType<L, T, P> Result(uninitialize);
-		for(length_t i = 0, n = Result.length(); i < n; ++i)
+		vecType<T, P> Result(uninitialize);
+		for(detail::component_count_t i = 0; i < detail::component_count(Result); ++i)
 			Result[i] = prev_float(x[i], ulps[i]);
 		return Result;
 	}
 
-	template<typename T>
+	template <typename T>
 	GLM_FUNC_QUALIFIER uint float_distance(T const & x, T const & y)
 	{
 		uint ulp = 0;
@@ -310,11 +339,11 @@ namespace glm
 		return ulp;
 	}
 
-	template<length_t L, typename T, precision P, template<length_t, typename, precision> class vecType>
-	GLM_FUNC_QUALIFIER vecType<L, uint, P> float_distance(vecType<L, T, P> const & x, vecType<L, T, P> const & y)
+	template<typename T, precision P, template<typename, precision> class vecType>
+	GLM_FUNC_QUALIFIER vecType<uint, P> float_distance(vecType<T, P> const & x, vecType<T, P> const & y)
 	{
-		vecType<L, uint, P> Result(uninitialize);
-		for(length_t i = 0, n = Result.length(); i < n; ++i)
+		vecType<uint, P> Result(uninitialize);
+		for(detail::component_count_t i = 0; i < detail::component_count(Result); ++i)
 			Result[i] = float_distance(x[i], y[i]);
 		return Result;
 	}

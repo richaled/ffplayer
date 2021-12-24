@@ -1,7 +1,8 @@
 #pragma once
 #include <memory>
 #include <cstdint>
-#include "JniUtils.h"
+#include "../JniUtils.h"
+//#include "jniutils/JniUtils.h"
 
 namespace JniUtils {
 

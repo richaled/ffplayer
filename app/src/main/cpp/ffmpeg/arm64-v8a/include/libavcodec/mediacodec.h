@@ -27,7 +27,7 @@
 
 /**
  * This structure holds a reference to a android/view/Surface object that will
- * be used as output by the decoder.
+ * be used as output by the player.decoder.
  *
  */
 typedef struct AVMediaCodecContext {
@@ -68,32 +68,32 @@ int av_mediacodec_default_init(AVCodecContext *avctx, AVMediaCodecContext *ctx, 
 void av_mediacodec_default_free(AVCodecContext *avctx);
 
 /**
- * Opaque structure representing a MediaCodec buffer to render.
+ * Opaque structure representing a MediaCodec buffer to player.render.
  */
 typedef struct MediaCodecBuffer AVMediaCodecBuffer;
 
 /**
- * Release a MediaCodec buffer and render it to the surface that is associated
- * with the decoder. This function should only be called once on a given
+ * Release a MediaCodec buffer and player.render it to the surface that is associated
+ * with the player.decoder. This function should only be called once on a given
  * buffer, once released the underlying buffer returns to the codec, thus
  * subsequent calls to this function will have no effect.
  *
- * @param buffer the buffer to render
- * @param render 1 to release and render the buffer to the surface or 0 to
+ * @param buffer the buffer to player.render
+ * @param render 1 to release and player.render the buffer to the surface or 0 to
  * discard the buffer
  * @return 0 on success, < 0 otherwise
  */
 int av_mediacodec_release_buffer(AVMediaCodecBuffer *buffer, int render);
 
 /**
- * Release a MediaCodec buffer and render it at the given time to the surface
- * that is associated with the decoder. The timestamp must be within one second
+ * Release a MediaCodec buffer and player.render it at the given time to the surface
+ * that is associated with the player.decoder. The timestamp must be within one second
  * of the current java/lang/System#nanoTime() (which is implemented using
  * CLOCK_MONOTONIC on Android). See the Android MediaCodec documentation
  * of android/media/MediaCodec#releaseOutputBuffer(int,long) for more details.
  *
- * @param buffer the buffer to render
- * @param time timestamp in nanoseconds of when to render the buffer
+ * @param buffer the buffer to player.render
+ * @param time timestamp in nanoseconds of when to player.render the buffer
  * @return 0 on success, < 0 otherwise
  */
 int av_mediacodec_render_buffer_at_time(AVMediaCodecBuffer *buffer, int64_t time);

@@ -58,7 +58,7 @@
  */
 typedef struct AVD3D11VAContext {
     /**
-     * D3D11 decoder object
+     * D3D11 player.decoder object
      */
     ID3D11VideoDecoder *decoder;
 
@@ -68,7 +68,7 @@ typedef struct AVD3D11VAContext {
     ID3D11VideoContext *video_context;
 
     /**
-     * D3D11 configuration used to create the decoder
+     * D3D11 configuration used to create the player.decoder
      */
     D3D11_VIDEO_DECODER_CONFIG *cfg;
 
@@ -78,12 +78,12 @@ typedef struct AVD3D11VAContext {
     unsigned surface_count;
 
     /**
-     * The array of Direct3D surfaces used to create the decoder
+     * The array of Direct3D surfaces used to create the player.decoder
      */
     ID3D11VideoDecoderOutputView **surface;
 
     /**
-     * A bit field configuring the workarounds needed for using the decoder
+     * A bit field configuring the workarounds needed for using the player.decoder
      */
     uint64_t workaround;
 

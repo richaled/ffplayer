@@ -52,7 +52,7 @@
  * number is incremented with backward incompatible changes - e.g. removing
  * parts of the public API, reordering public struct members, etc. The minor
  * version number is incremented for backward compatible API changes or major
- * new features - e.g. adding a new public function or a new decoder. The micro
+ * new features - e.g. adding a new public function or a new player.decoder. The micro
  * version number is incremented for smaller changes that a calling program
  * might still want to check for - e.g. changing behavior in a previously
  * unspecified situation.

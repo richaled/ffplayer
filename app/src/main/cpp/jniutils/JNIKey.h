@@ -3,7 +3,7 @@
 
 namespace learn {
 
-    extern const uint32_t kPlayerRender;
+    extern const uint32_t kPlayer;
 
 }
 

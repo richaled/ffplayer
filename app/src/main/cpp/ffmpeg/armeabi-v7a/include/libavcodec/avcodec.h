@@ -88,7 +88,7 @@
  * follows:
  * - Set up and open the AVCodecContext as usual.
  * - Send valid input:
- *   - For decoding, call avcodec_send_packet() to give the decoder raw
+ *   - For decoding, call avcodec_send_packet() to give the player.decoder raw
  *     compressed data in an AVPacket.
  *   - For encoding, call avcodec_send_frame() to give the encoder an AVFrame
  *     containing uncompressed audio or video.
@@ -149,7 +149,7 @@
  *
  * This API replaces the following legacy functions:
  * - avcodec_decode_video2() and avcodec_decode_audio4():
- *   Use avcodec_send_packet() to feed input to the decoder, then use
+ *   Use avcodec_send_packet() to feed input to the player.decoder, then use
  *   avcodec_receive_frame() to receive decoded frames after each packet.
  *   Unlike with the old video decoding API, multiple frames might result from
  *   a packet. For audio, splitting the input packet into frames by partially
@@ -981,7 +981,7 @@ typedef struct RcOverride{
 #define AV_CODEC_CAP_DR1                 (1 <<  1)
 #define AV_CODEC_CAP_TRUNCATED           (1 <<  3)
 /**
- * Encoder or decoder requires flushing with NULL input at the end in order to
+ * Encoder or player.decoder requires flushing with NULL input at the end in order to
  * give the complete and correct output.
  *
  * NOTE: If this flag is not set, the codec is guaranteed to never be fed with
@@ -990,8 +990,8 @@ typedef struct RcOverride{
  *       unless this flag is set.
  *
  * Decoders:
- * The decoder has a non-zero delay and needs to be fed with avpkt->data=NULL,
- * avpkt->size=0 at the end to get the delayed data until the decoder no longer
+ * The player.decoder has a non-zero delay and needs to be fed with avpkt->data=NULL,
+ * avpkt->size=0 at the end to get the delayed data until the player.decoder no longer
  * returns frames.
  *
  * Encoders:
@@ -1053,11 +1053,11 @@ typedef struct RcOverride{
 #define AV_CODEC_CAP_VARIABLE_FRAME_SIZE (1 << 16)
 /**
  * Decoder is not a preferred choice for probing.
- * This indicates that the decoder is not a good choice for probing.
- * It could for example be an expensive to spin up hardware decoder,
+ * This indicates that the player.decoder is not a good choice for probing.
+ * It could for example be an expensive to spin up hardware player.decoder,
  * or it could simply not provide a lot of useful information about
  * the stream.
- * A decoder marked with this flag should only be used as last resort
+ * A player.decoder marked with this flag should only be used as last resort
  * choice for probing.
  */
 #define AV_CODEC_CAP_AVOID_PROBING       (1 << 17)
@@ -1072,7 +1072,7 @@ typedef struct RcOverride{
 
 /**
  * Codec is backed by a hardware implementation. Typically used to
- * identify a non-hwaccel hardware decoder. For information about hwaccels, use
+ * identify a non-hwaccel hardware player.decoder. For information about hwaccels, use
  * avcodec_get_hw_config() instead.
  */
 #define AV_CODEC_CAP_HARDWARE            (1 << 18)
@@ -1171,7 +1171,7 @@ typedef struct AVCPBProperties {
 } AVCPBProperties;
 
 /**
- * The decoder will keep a reference to the frame and may reuse it later.
+ * The player.decoder will keep a reference to the frame and may reuse it later.
  */
 #define AV_GET_BUFFER_FLAG_REF (1 << 0)
 
@@ -1279,7 +1279,7 @@ enum AVPacketSideDataType {
      * This side data contains an integer value representing the stream index
      * of a "fallback" track.  A fallback track indicates an alternate
      * track to use when the current track can not be decoded for some reason.
-     * e.g. no decoder available for codec.
+     * e.g. no player.decoder available for codec.
      */
     AV_PKT_DATA_FALLBACK_TRACK,
 
@@ -1510,7 +1510,7 @@ typedef struct AVPacket {
 #define AV_PKT_FLAG_CORRUPT 0x0002 ///< The packet content is corrupted
 /**
  * Flag is used to discard packets which are required to maintain valid
- * decoder state but are not required for output and should be dropped
+ * player.decoder state but are not required for output and should be dropped
  * after decoding.
  **/
 #define AV_PKT_FLAG_DISCARD   0x0004
@@ -1523,7 +1523,7 @@ typedef struct AVPacket {
 #define AV_PKT_FLAG_TRUSTED   0x0008
 /**
  * Flag is used to indicate packets that contain frames that can
- * be discarded by the decoder.  I.e. Non-reference frames.
+ * be discarded by the player.decoder.  I.e. Non-reference frames.
  */
 #define AV_PKT_FLAG_DISPOSABLE 0x0010
 
@@ -1700,8 +1700,8 @@ typedef struct AVCodecContext {
      * Codec delay.
      *
      * Encoding: Number of frames delay there will be from the encoder input to
-     *           the decoder output. (we assume the decoder matches the spec)
-     * Decoding: Number of frames delay in addition to what a standard decoder
+     *           the player.decoder output. (we assume the player.decoder matches the spec)
+     * Decoding: Number of frames delay in addition to what a standard player.decoder
      *           as specified in the spec would produce.
      *
      * Video:
@@ -1711,8 +1711,8 @@ typedef struct AVCodecContext {
      * Audio:
      *   For encoding, this field is unused (see initial_padding).
      *
-     *   For decoding, this is the number of samples the decoder needs to
-     *   output before the decoder's output is valid. When seeking, you should
+     *   For decoding, this is the number of samples the player.decoder needs to
+     *   output before the player.decoder's output is valid. When seeking, you should
      *   start decoding this many samples prior to your desired seek point.
      *
      * - encoding: Set by libavcodec.
@@ -1730,9 +1730,9 @@ typedef struct AVCodecContext {
      * reordering.
      *
      * - encoding: MUST be set by user.
-     * - decoding: May be set by the user before opening the decoder if known e.g.
+     * - decoding: May be set by the user before opening the player.decoder if known e.g.
      *             from the container. Some decoders will require the dimensions
-     *             to be set by the caller. During decoding, the decoder may
+     *             to be set by the caller. During decoding, the player.decoder may
      *             overwrite those values as required while parsing the data.
      */
     int width, height;
@@ -1746,8 +1746,8 @@ typedef struct AVCodecContext {
      * reordering.
      *
      * - encoding: unused
-     * - decoding: May be set by the user before opening the decoder if known
-     *             e.g. from the container. During decoding, the decoder may
+     * - decoding: May be set by the user before opening the player.decoder if known
+     *             e.g. from the container. During decoding, the player.decoder may
      *             overwrite those values as required while parsing the data.
      */
     int coded_width, coded_height;
@@ -1762,7 +1762,7 @@ typedef struct AVCodecContext {
     /**
      * Pixel format, see AV_PIX_FMT_xxx.
      * May be set by the demuxer if known from headers.
-     * May be overridden by the decoder if it knows better.
+     * May be overridden by the player.decoder if it knows better.
      *
      * @note This field may not match the value of the last
      * AVFrame output by avcodec_receive_frame() due frame
@@ -1776,7 +1776,7 @@ typedef struct AVCodecContext {
 
     /**
      * If non NULL, 'draw_horiz_band' is called by the libavcodec
-     * decoder to draw a horizontal band. It improves cache usage. Not
+     * player.decoder to draw a horizontal band. It improves cache usage. Not
      * all codecs can do that. You must check the codec capabilities
      * beforehand.
      * When multithreading is used, it may be called from multiple threads
@@ -1785,7 +1785,7 @@ typedef struct AVCodecContext {
      * in order.
      * The function is also used by hardware acceleration APIs.
      * It is called at least once during frame decoding to pass
-     * the data needed for hardware render.
+     * the data needed for hardware player.render.
      * In that mode instead of pixel data, AVFrame points to
      * a structure specific to the acceleration API. The application
      * reads the structure and can change some fields to indicate progress
@@ -1847,7 +1847,7 @@ typedef struct AVCodecContext {
     float b_quant_offset;
 
     /**
-     * Size of the frame reordering buffer in the decoder.
+     * Size of the frame reordering buffer in the player.decoder.
      * For MPEG-2 it is 1 IPB or 0 low delay IP.
      * - encoding: Set by libavcodec.
      * - decoding: Set by libavcodec.
@@ -2247,7 +2247,7 @@ typedef struct AVCodecContext {
     /**
      * Frame counter, set by libavcodec.
      *
-     * - decoding: total number of frames returned from the decoder so far.
+     * - decoding: total number of frames returned from the player.decoder so far.
      * - encoding: total number of frames passed to the encoder so far.
      *
      *   @note the counter is not incremented if encoding/decoding resulted in
@@ -2276,7 +2276,7 @@ typedef struct AVCodecContext {
     uint64_t channel_layout;
 
     /**
-     * Request decoder to use this channel layout if it can (0 for default)
+     * Request player.decoder to use this channel layout if it can (0 for default)
      * - encoding: unused
      * - decoding: Set by user.
      */
@@ -2362,7 +2362,7 @@ typedef struct AVCodecContext {
      * Audio:
      *
      * Decoders request a buffer of a particular size by setting
-     * AVFrame.nb_samples prior to calling get_buffer2(). The decoder may,
+     * AVFrame.nb_samples prior to calling get_buffer2(). The player.decoder may,
      * however, utilize only part of the buffer by setting AVFrame.nb_samples
      * to a smaller value in the output frame.
      *
@@ -2421,7 +2421,7 @@ typedef struct AVCodecContext {
     int max_qdiff;
 
     /**
-     * decoder bitstream buffer size
+     * player.decoder bitstream buffer size
      * - encoding: Set by user.
      * - decoding: unused
      */
@@ -2617,7 +2617,7 @@ typedef struct AVCodecContext {
      * strictly follow the standard (MPEG-4, ...).
      * - encoding: Set by user.
      * - decoding: Set by user.
-     * Setting this to STRICT or higher means the encoder and decoder will
+     * Setting this to STRICT or higher means the encoder and player.decoder will
      * generally do stupid things, whereas setting it to unofficial or lower
      * will mean the encoder might produce output that is not supported by all
      * spec-compliant decoders. Decoders don't differentiate between normal,
@@ -2697,7 +2697,7 @@ typedef struct AVCodecContext {
  * Verify checksums embedded in the bitstream (could be of either encoded or
  * decoded data, depending on the codec) and print an error message on mismatch.
  * If AV_EF_EXPLODE is also set, a mismatching checksum will result in the
- * decoder returning an error.
+ * player.decoder returning an error.
  */
 #define AV_EF_CRCCHECK  (1<<0)
 #define AV_EF_BITSTREAM (1<<1)          ///< detect bitstream specification deviations
@@ -3097,7 +3097,7 @@ typedef struct AVCodecContext {
 
     /**
      * - decoding: For codecs that store a framerate value in the compressed
-     *             bitstream, the decoder may export it here. { 0, 1} when
+     *             bitstream, the player.decoder may export it here. { 0, 1} when
      *             unknown.
      * - encoding: May be used to signal the framerate of CFR content to an
      *             encoder.
@@ -3160,7 +3160,7 @@ typedef struct AVCodecContext {
     int sub_charenc_mode;
 #define FF_SUB_CHARENC_MODE_DO_NOTHING  -1  ///< do nothing (demuxer outputs a stream supposed to be already in UTF-8, or the codec is bitmap for instance)
 #define FF_SUB_CHARENC_MODE_AUTOMATIC    0  ///< libavcodec will select the mode itself
-#define FF_SUB_CHARENC_MODE_PRE_DECODER  1  ///< the AVPacket data needs to be recoded to UTF-8 before being fed to the decoder, requires iconv
+#define FF_SUB_CHARENC_MODE_PRE_DECODER  1  ///< the AVPacket data needs to be recoded to UTF-8 before being fed to the player.decoder, requires iconv
 #define FF_SUB_CHARENC_MODE_IGNORE       2  ///< neither convert the subtitles, nor check them for valid UTF-8
 
     /**
@@ -3293,14 +3293,14 @@ typedef struct AVCodecContext {
 
     /**
      * A reference to the AVHWDeviceContext describing the device which will
-     * be used by a hardware encoder/decoder.  The reference is set by the
+     * be used by a hardware encoder/player.decoder.  The reference is set by the
      * caller and afterwards owned (and freed) by libavcodec.
      *
      * This should be used if either the codec device does not require
      * hardware frames or any that are used are to be allocated internally by
      * libavcodec.  If the user wishes to supply any of the frames used as
-     * encoder input or decoder output then hw_frames_ctx should be used
-     * instead.  When hw_frames_ctx is set in get_format() for a decoder, this
+     * encoder input or player.decoder output then hw_frames_ctx should be used
+     * instead.  When hw_frames_ctx is set in get_format() for a player.decoder, this
      * field will be ignored while decoding the associated stream segment, but
      * may again be used on a following one after another get_format() call.
      *
@@ -3331,7 +3331,7 @@ typedef struct AVCodecContext {
      * I.e. it will modify the output frame width/height fields and offset the
      * data pointers (only by as much as possible while preserving alignment, or
      * by the full amount if the AV_CODEC_FLAG_UNALIGNED flag is set) so that
-     * the frames output by the decoder refer only to the cropped area. The
+     * the frames output by the player.decoder refer only to the cropped area. The
      * crop_* fields of the output frames will be zero.
      *
      * When set to 0, the width/height fields of the output frames will be set
@@ -3351,13 +3351,13 @@ typedef struct AVCodecContext {
 
     /*
      * Video decoding only.  Sets the number of extra hardware frames which
-     * the decoder will allocate for use by the caller.  This must be set
+     * the player.decoder will allocate for use by the caller.  This must be set
      * before avcodec_open2() is called.
      *
      * Some hardware decoders require all frames that they will use for
      * output to be defined in advance before decoding starts.  For such
      * decoders, the hardware frame pool must therefore be of a fixed size.
-     * The extra frames set here are on top of any number that the decoder
+     * The extra frames set here are on top of any number that the player.decoder
      * needs internally in order to operate normally (for example, frames
      * used as reference pictures).
      */
@@ -3428,7 +3428,7 @@ enum {
     /**
      * The codec supports this format via the hw_frames_ctx interface.
      *
-     * When selecting this format for a decoder,
+     * When selecting this format for a player.decoder,
      * AVCodecContext.hw_frames_ctx should be set to a suitable frames
      * context inside the get_format() callback.  The frames context
      * must have been created on a device of the specified type.
@@ -3482,7 +3482,7 @@ typedef struct AVCodec {
     /**
      * Name of the codec implementation.
      * The name is globally unique among encoders and among decoders (but an
-     * encoder and a decoder can share the same name).
+     * encoder and a player.decoder can share the same name).
      * This is the primary way to find a codec from the user perspective.
      */
     const char *name;
@@ -3503,7 +3503,7 @@ typedef struct AVCodec {
     const int *supported_samplerates;       ///< array of supported audio samplerates, or NULL if unknown, array is terminated by 0
     const enum AVSampleFormat *sample_fmts; ///< array of supported sample formats, or NULL if unknown, array is terminated by -1
     const uint64_t *channel_layouts;         ///< array of support channel layouts, or NULL if unknown. array is terminated by 0
-    uint8_t max_lowres;                     ///< maximum value for lowres supported by the decoder
+    uint8_t max_lowres;                     ///< maximum value for lowres supported by the player.decoder
     const AVClass *priv_class;              ///< AVClass for the private context
     const AVProfile *profiles;              ///< array of recognized profiles, or NULL if unknown, array is terminated by {FF_PROFILE_UNKNOWN}
 
@@ -3650,7 +3650,7 @@ typedef struct AVHWAccel {
     /**
      * Name of the hardware accelerated codec.
      * The name is globally unique among encoders and among decoders (but an
-     * encoder and a decoder can share the same name).
+     * encoder and a player.decoder can share the same name).
      */
     const char *name;
 
@@ -3881,13 +3881,13 @@ enum AVSubtitleType {
     SUBTITLE_BITMAP,                ///< A bitmap, pict will be set
 
     /**
-     * Plain text, the text field must be set by the decoder and is
+     * Plain text, the text field must be set by the player.decoder and is
      * authoritative. ass and pict fields may contain approximations.
      */
     SUBTITLE_TEXT,
 
     /**
-     * Formatted text, the ass field must be set by the decoder and is
+     * Formatted text, the ass field must be set by the player.decoder and is
      * authoritative. pict and text fields may contain approximations.
      */
     SUBTITLE_ASS,
@@ -3961,7 +3961,7 @@ typedef struct AVCodecParameters {
     uint32_t         codec_tag;
 
     /**
-     * Extra binary data needed for initializing the decoder, codec-dependent.
+     * Extra binary data needed for initializing the player.decoder, codec-dependent.
      *
      * Must be allocated with av_malloc() and will be freed by
      * avcodec_parameters_free(). The allocated size of extradata must be at
@@ -4659,18 +4659,18 @@ void av_packet_rescale_ts(AVPacket *pkt, AVRational tb_src, AVRational tb_dst);
  */
 
 /**
- * Find a registered decoder with a matching codec ID.
+ * Find a registered player.decoder with a matching codec ID.
  *
- * @param id AVCodecID of the requested decoder
- * @return A decoder if one was found, NULL otherwise.
+ * @param id AVCodecID of the requested player.decoder
+ * @return A player.decoder if one was found, NULL otherwise.
  */
 AVCodec *avcodec_find_decoder(enum AVCodecID id);
 
 /**
- * Find a registered decoder with the specified name.
+ * Find a registered player.decoder with the specified name.
  *
- * @param name name of the requested decoder
- * @return A decoder if one was found, NULL otherwise.
+ * @param name name of the requested player.decoder
+ * @return A player.decoder if one was found, NULL otherwise.
  */
 AVCodec *avcodec_find_decoder_by_name(const char *name);
 
@@ -4730,7 +4730,7 @@ enum AVChromaLocation avcodec_chroma_pos_to_enum(int xpos, int ypos);
  * less than the packet size. In this case, avcodec_decode_audio4 has to be
  * called again with an AVPacket containing the remaining data in order to
  * decode the second frame, etc...  Even if no frames are returned, the packet
- * needs to be fed to the decoder with remaining data until it is completely
+ * needs to be fed to the player.decoder with remaining data until it is completely
  * consumed or an error occurs.
  *
  * Some decoders (those marked with AV_CODEC_CAP_DELAY) have a delay between input
@@ -4746,11 +4746,11 @@ enum AVChromaLocation avcodec_chroma_pos_to_enum(int xpos, int ypos);
  *          readers read 32 or 64 bits at once and could read over the end.
  *
  * @note The AVCodecContext MUST have been opened with @ref avcodec_open2()
- * before packets may be fed to the decoder.
+ * before packets may be fed to the player.decoder.
  *
  * @param      avctx the codec context
  * @param[out] frame The AVFrame in which to store decoded audio samples.
- *                   The decoder will allocate a buffer for the decoded frame by
+ *                   The player.decoder will allocate a buffer for the decoded frame by
  *                   calling the AVCodecContext.get_buffer2() callback.
  *                   When AVCodecContext.refcounted_frames is set to 1, the frame is
  *                   reference counted and the returned reference belongs to the
@@ -4758,9 +4758,9 @@ enum AVChromaLocation avcodec_chroma_pos_to_enum(int xpos, int ypos);
  *                   when the frame is no longer needed. The caller may safely write
  *                   to the frame if av_frame_is_writable() returns 1.
  *                   When AVCodecContext.refcounted_frames is set to 0, the returned
- *                   reference belongs to the decoder and is valid only until the
+ *                   reference belongs to the player.decoder and is valid only until the
  *                   next call to this function or until closing or flushing the
- *                   decoder. The caller may not write to it.
+ *                   player.decoder. The caller may not write to it.
  * @param[out] got_frame_ptr Zero if no frame could be decoded, otherwise it is
  *                           non-zero. Note that this field being set to zero
  *                           does not mean that an error has occurred. For
@@ -4796,7 +4796,7 @@ int avcodec_decode_audio4(AVCodecContext *avctx, AVFrame *frame,
  * avpkt->size=0 at the end to return the remaining frames.
  *
  * @note The AVCodecContext MUST have been opened with @ref avcodec_open2()
- * before packets may be fed to the decoder.
+ * before packets may be fed to the player.decoder.
  *
  * @param avctx the codec context
  * @param[out] picture The AVFrame in which the decoded video frame will be stored.
@@ -4809,9 +4809,9 @@ int avcodec_decode_audio4(AVCodecContext *avctx, AVFrame *frame,
  *             when the frame is no longer needed. The caller may safely write
  *             to the frame if av_frame_is_writable() returns 1.
  *             When AVCodecContext.refcounted_frames is set to 0, the returned
- *             reference belongs to the decoder and is valid only until the
+ *             reference belongs to the player.decoder and is valid only until the
  *             next call to this function or until closing or flushing the
- *             decoder. The caller may not write to it.
+ *             player.decoder. The caller may not write to it.
  *
  * @param[in] avpkt The input AVPacket containing the input buffer.
  *            You can create such packet with av_init_packet() and by then setting
@@ -4848,7 +4848,7 @@ int avcodec_decode_video2(AVCodecContext *avctx, AVFrame *picture,
  * marked with AV_CODEC_CAP_DELAY, then no subtitles will be returned.
  *
  * @note The AVCodecContext MUST have been opened with @ref avcodec_open2()
- * before packets may be fed to the decoder.
+ * before packets may be fed to the player.decoder.
  *
  * @param avctx the codec context
  * @param[out] sub The Preallocated AVSubtitle in which the decoded subtitle will be stored,
@@ -4861,12 +4861,12 @@ int avcodec_decode_subtitle2(AVCodecContext *avctx, AVSubtitle *sub,
                             AVPacket *avpkt);
 
 /**
- * Supply raw packet data as input to a decoder.
+ * Supply raw packet data as input to a player.decoder.
  *
  * Internally, this call will copy relevant AVCodecContext fields, which can
  * influence decoding per-packet, and apply them when the packet is actually
  * decoded. (For example AVCodecContext.skip_frame, which might direct the
- * decoder to drop the frame contained by the packet sent with this function.)
+ * player.decoder to drop the frame contained by the packet sent with this function.)
  *
  * @warning The input buffer, avpkt->data must be AV_INPUT_BUFFER_PADDING_SIZE
  *          larger than the actual read bytes because some optimized bitstream
@@ -4877,13 +4877,13 @@ int avcodec_decode_subtitle2(AVCodecContext *avctx, AVSubtitle *sub,
  *          or in future libavcodec versions.
  *
  * @note The AVCodecContext MUST have been opened with @ref avcodec_open2()
- *       before packets may be fed to the decoder.
+ *       before packets may be fed to the player.decoder.
  *
  * @param avctx codec context
  * @param[in] avpkt The input AVPacket. Usually, this will be a single video
  *                  frame, or several complete audio frames.
  *                  Ownership of the packet remains with the caller, and the
- *                  decoder will not write to the packet. The decoder may create
+ *                  player.decoder will not write to the packet. The player.decoder may create
  *                  a reference to the packet data (or copy it if the packet is
  *                  not reference-counted).
  *                  Unlike with older APIs, the packet is always fully consumed,
@@ -4894,7 +4894,7 @@ int avcodec_decode_subtitle2(AVCodecContext *avctx, AVSubtitle *sub,
  *                  size set to 0); in this case, it is considered a flush
  *                  packet, which signals the end of the stream. Sending the
  *                  first flush packet will return success. Subsequent ones are
- *                  unnecessary and will return AVERROR_EOF. If the decoder
+ *                  unnecessary and will return AVERROR_EOF. If the player.decoder
  *                  still has frames buffered, it will return them after sending
  *                  a flush packet.
  *
@@ -4903,7 +4903,7 @@ int avcodec_decode_subtitle2(AVCodecContext *avctx, AVSubtitle *sub,
  *                         must read output with avcodec_receive_frame() (once
  *                         all output is read, the packet should be resent, and
  *                         the call will not fail with EAGAIN).
- *      AVERROR_EOF:       the decoder has been flushed, and no new packets can
+ *      AVERROR_EOF:       the player.decoder has been flushed, and no new packets can
  *                         be sent to it (also returned if more than 1 flush
  *                         packet is sent)
  *      AVERROR(EINVAL):   codec not opened, it is an encoder, or requires flush
@@ -4913,19 +4913,19 @@ int avcodec_decode_subtitle2(AVCodecContext *avctx, AVSubtitle *sub,
 int avcodec_send_packet(AVCodecContext *avctx, const AVPacket *avpkt);
 
 /**
- * Return decoded output data from a decoder.
+ * Return decoded output data from a player.decoder.
  *
  * @param avctx codec context
  * @param frame This will be set to a reference-counted video or audio
- *              frame (depending on the decoder type) allocated by the
- *              decoder. Note that the function will always call
+ *              frame (depending on the player.decoder type) allocated by the
+ *              player.decoder. Note that the function will always call
  *              av_frame_unref(frame) before doing anything else.
  *
  * @return
  *      0:                 success, a frame was returned
  *      AVERROR(EAGAIN):   output is not available in this state - user must try
  *                         to send new input
- *      AVERROR_EOF:       the decoder has been fully flushed, and there will be
+ *      AVERROR_EOF:       the player.decoder has been fully flushed, and there will be
  *                         no more output frames
  *      AVERROR(EINVAL):   codec not opened, or it is an encoder
  *      AVERROR_INPUT_CHANGED:   current decoded frame has changed parameters
@@ -4966,7 +4966,7 @@ int avcodec_receive_frame(AVCodecContext *avctx, AVFrame *frame);
  *      AVERROR_EOF:       the encoder has been flushed, and no new frames can
  *                         be sent to it
  *      AVERROR(EINVAL):   codec not opened, refcounted_frames not set, it is a
- *                         decoder, or requires flush
+ *                         player.decoder, or requires flush
  *      AVERROR(ENOMEM):   failed to add packet to internal queue, or similar
  *      other errors: legitimate decoding errors
  */
@@ -5055,7 +5055,7 @@ int avcodec_receive_packet(AVCodecContext *avctx, AVPacket *avpkt);
  *   plus 1 surface for the user to work (meaning the user can safely reference
  *   at most 1 decoded surface at a time), plus additional buffering introduced
  *   by frame threading. If the hwaccel does not require pre-allocation, the
- *   field is left to 0, and the decoder will allocate new surfaces on demand
+ *   field is left to 0, and the player.decoder will allocate new surfaces on demand
  *   during decoding.
  * - Possibly AVHWFramesContext.hwctx fields, depending on the underlying
  *   hardware API.
@@ -5070,7 +5070,7 @@ int avcodec_receive_packet(AVCodecContext *avctx, AVPacket *avpkt);
  *              implicitly contains all state needed for filling the returned
  *              AVHWFramesContext properly.
  * @param device_ref A reference to the AVHWDeviceContext describing the device
- *                   which will be used by the hardware decoder.
+ *                   which will be used by the hardware player.decoder.
  * @param hw_pix_fmt The hwaccel format you are going to return from get_format.
  * @param out_frames_ref On success, set to a reference to an _uninitialized_
  *                       AVHWFramesContext, created from the given device_ref.
@@ -5078,8 +5078,8 @@ int avcodec_receive_packet(AVCodecContext *avctx, AVPacket *avpkt);
  *                       Not changed if an error is returned.
  * @return zero on success, a negative value on error. The following error codes
  *         have special semantics:
- *      AVERROR(ENOENT): the decoder does not support this functionality. Setup
- *                       is always manual, or it is a decoder which does not
+ *      AVERROR(ENOENT): the player.decoder does not support this functionality. Setup
+ *                       is always manual, or it is a player.decoder which does not
  *                       support setting AVCodecContext.hw_frames_ctx at all,
  *                       or it is a software format.
  *      AVERROR(EINVAL): it is known that hardware decoding is not supported for
@@ -5265,9 +5265,9 @@ typedef struct AVCodecParserContext {
      * The format of the coded data, corresponds to enum AVPixelFormat for video
      * and for enum AVSampleFormat for audio.
      *
-     * Note that a decoder can have considerable freedom in how exactly it
+     * Note that a player.decoder can have considerable freedom in how exactly it
      * decodes the data, so the format reported here might be different from the
-     * one returned by a decoder.
+     * one returned by a player.decoder.
      */
     int format;
 } AVCodecParserContext;
@@ -5645,7 +5645,7 @@ const char *av_get_profile_name(const AVCodec *codec, int profile);
  * @return A name for the profile if found, NULL otherwise.
  *
  * @note unlike av_get_profile_name(), which searches a list of profiles
- *       supported by a specific decoder or encoder implementation, this
+ *       supported by a specific player.decoder or encoder implementation, this
  *       function searches the list of profiles from the AVCodecDescriptor
  */
 const char *avcodec_profile_name(enum AVCodecID codec_id, int profile);
@@ -5682,12 +5682,12 @@ int avcodec_fill_audio_frame(AVFrame *frame, int nb_channels,
                              int buf_size, int align);
 
 /**
- * Reset the internal decoder state / flush internal buffers. Should be called
+ * Reset the internal player.decoder state / flush internal buffers. Should be called
  * e.g. when seeking or when switching to a different stream.
  *
  * @note when refcounted frames are not used (i.e. avctx->refcounted_frames is 0),
- * this invalidates the frames previously returned from the decoder. When
- * refcounted frames are used, the decoder just releases any references it might
+ * this invalidates the frames previously returned from the player.decoder. When
+ * refcounted frames are used, the player.decoder just releases any references it might
  * keep internally, but the caller's reference remains valid.
  */
 void avcodec_flush_buffers(AVCodecContext *avctx);
@@ -6186,7 +6186,7 @@ int avcodec_is_open(AVCodecContext *s);
 int av_codec_is_encoder(const AVCodec *codec);
 
 /**
- * @return a non-zero number if codec is a decoder, zero otherwise
+ * @return a non-zero number if codec is a player.decoder, zero otherwise
  */
 int av_codec_is_decoder(const AVCodec *codec);
 

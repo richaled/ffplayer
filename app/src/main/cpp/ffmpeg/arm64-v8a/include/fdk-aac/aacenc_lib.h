@@ -548,11 +548,11 @@ aacEncoder_SetParam(hAacEncoder, AACENC_GRANULE_LENGTH, 128);
 \endcode
 
 Downscaled bitstreams are fully backwards compatible. However, the legacy
-decoder needs to support high sample rate, e.g. 96kHz. The signaled sampling
+player.decoder needs to support high sample rate, e.g. 96kHz. The signaled sampling
 rate is multiplied by the downscale factor. Although not required, downscaling
 should be applied when decoding downscaled bitstreams. It reduces CPU workload
 and the output will have the same sampling rate as the input. In an ideal
-configuration both encoder and decoder should run with the same downscale
+configuration both encoder and player.decoder should run with the same downscale
 factor.
 
 The following table shows approximate filter bank delays in ms for common
@@ -939,7 +939,7 @@ to be used to get the same audio quality as with an enabled bit reservoir.
 For mp3 by the way, the same bit reservoir technique exists, but there each bit
 stream frame has a constant length for a given bit rate (ignoring the
 padding byte). In mp3 there is a so-called "back pointer" which tells
-the decoder which bits belong to the current mp3 frame - and in general some or
+the player.decoder which bits belong to the current mp3 frame - and in general some or
 many bits have been transmitted in an earlier mp3 frame. Basically this leads to
 the same "bit exchange between mp3 frames" as in AAC but with virtually constant
 length frames.
@@ -1086,8 +1086,8 @@ typedef struct {
                   PCM input buffer. */
 
   UINT nDelayCore; /*!< Codec delay in PCM samples/channel, w/o delay caused by
-                      the decoder SBR module. This delay is needed to correctly
-                      write edit lists for gapless playback. The decoder may not
+                      the player.decoder SBR module. This delay is needed to correctly
+                      write edit lists for gapless playback. The player.decoder may not
                       know how much delay is introdcued by SBR, since it may not
                       know if SBR is active at all (implicit signaling),
                       therefore the deocder must take into account any delay
@@ -1412,20 +1412,20 @@ typedef enum {
                  non-MPEG-4 based AOT's and for the transport formats ADIF and
                  ADTS)
                         - A stream that uses implicit signaling can be decoded
-                 by every AAC decoder, even AAC-LC-only decoders
-                        - An AAC-LC-only decoder will only decode the
+                 by every AAC player.decoder, even AAC-LC-only decoders
+                        - An AAC-LC-only player.decoder will only decode the
                  low-frequency part of the stream, resulting in a band-limited
                  output
                         - This method works with all transport formats
                         - This method does not work with downsampled SBR
                    - 1: Explicit backward compatible signaling
                         - A stream that uses explicit backward compatible
-                 signaling can be decoded by every AAC decoder, even AAC-LC-only
+                 signaling can be decoded by every AAC player.decoder, even AAC-LC-only
                  decoders
-                        - An AAC-LC-only decoder will only decode the
+                        - An AAC-LC-only player.decoder will only decode the
                  low-frequency part of the stream, resulting in a band-limited
                  output
-                        - A decoder not capable of decoding PS will only decode
+                        - A player.decoder not capable of decoding PS will only decode
                  the AAC-LC+SBR part. If the stream contained PS, the result
                  will be a a decoded mono downmix
                         - This method does not work with ADIF or ADTS. For
@@ -1436,9 +1436,9 @@ typedef enum {
                  ADTS)
                         - A stream that uses explicit hierarchical signaling can
                  be decoded only by HE-AAC decoders
-                        - An AAC-LC-only decoder will not decode a stream that
+                        - An AAC-LC-only player.decoder will not decode a stream that
                  uses explicit hierarchical signaling
-                        - A decoder not capable of decoding PS will not decode
+                        - A player.decoder not capable of decoding PS will not decode
                  the stream at all if it contained PS
                         - This method does not work with ADIF or ADTS. It works
                  with LOAS/LATM and the MPEG-4 File format
@@ -1446,10 +1446,10 @@ typedef enum {
 
                     For making sure that the listener always experiences the
                  best audio quality, explicit hierarchical signaling should be
-                 used. This makes sure that only a full HE-AAC-capable decoder
+                 used. This makes sure that only a full HE-AAC-capable player.decoder
                  will decode those streams. The audio is played at full
                  bandwidth. For best backwards compatibility, it is recommended
-                 to encode with implicit SBR signaling. A decoder capable of
+                 to encode with implicit SBR signaling. A player.decoder capable of
                  AAC-LC only will then only decode the AAC part, which means the
                  decoded audio will sound band-limited.
 
@@ -1459,13 +1459,13 @@ typedef enum {
                     For LOAS and LATM, explicit backwards compatible signaling
                  only works together with AudioMuxVersion==1. The reason is
                  that, for explicit backwards compatible signaling, additional
-                 information will be appended to the ASC. A decoder that is only
+                 information will be appended to the ASC. A player.decoder that is only
                  capable of decoding AAC-LC will skip this part. Nevertheless,
                  for jumping to the end of the ASC, it needs to know the ASC
                  length. Transmitting the length of the ASC is a feature of
                  AudioMuxVersion==1, it is not possible to transmit the length
                  of the ASC with AudioMuxVersion==0, therefore an AAC-LC-only
-                 decoder will not be able to parse a LOAS/LATM stream that was
+                 player.decoder will not be able to parse a LOAS/LATM stream that was
                  being encoded with AudioMuxVersion==0.
 
                     For downsampled SBR, explicit signaling is mandatory. The

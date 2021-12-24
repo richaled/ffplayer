@@ -114,8 +114,8 @@ enum AVIODataMarkerType {
      */
     AVIO_DATA_MARKER_HEADER,
     /**
-     * A point in the output bytestream where a decoder can start decoding
-     * (i.e. a keyframe). A demuxer/decoder given the data flagged with
+     * A point in the output bytestream where a player.decoder can start decoding
+     * (i.e. a keyframe). A demuxer/player.decoder given the data flagged with
      * AVIO_DATA_MARKER_HEADER, followed by any AVIO_DATA_MARKER_SYNC_POINT,
      * should give decodeable results.
      */

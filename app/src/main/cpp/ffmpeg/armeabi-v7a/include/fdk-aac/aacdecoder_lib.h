@@ -92,7 +92,7 @@ www.iis.fraunhofer.de/amm
 amm-info@iis.fraunhofer.de
 ----------------------------------------------------------------------------- */
 
-/**************************** AAC decoder library ******************************
+/**************************** AAC player.decoder library ******************************
 
    Author(s):   Manuel Jander
 
@@ -105,7 +105,7 @@ amm-info@iis.fraunhofer.de
 
 /**
  * \file   aacdecoder_lib.h
- * \brief  FDK AAC decoder library interface header file.
+ * \brief  FDK AAC player.decoder library interface header file.
  *
 
 \page INTRO Introduction
@@ -121,7 +121,7 @@ AAC-LC (Low-Complexity), HE-AAC (High-Efficiency AAC v1 and v2), AAC-LD
 
 All references to SBR (Spectral Band Replication) are only applicable to HE-AAC
 and AAC-ELD configurations of the FDK library. All references to PS (Parametric
-Stereo) are only applicable to HE-AAC v2 decoder configuration of the library.
+Stereo) are only applicable to HE-AAC v2 player.decoder configuration of the library.
 
 \section DecoderBasics Decoder Basics
 
@@ -161,7 +161,7 @@ MPEG-4 HE-AAC.
 
 All API header files are located in the folder /include of the release package.
 The contents of each file is described in detail in this document. All header
-files are provided for usage in specific C/C++ programs. The main AAC decoder
+files are provided for usage in specific C/C++ programs. The main AAC player.decoder
 library API functions are located in aacdecoder_lib.h header file.
 
 
@@ -174,13 +174,13 @@ implemented in a variety of configurations depending on the user's specific
 requirements.
 
 
--# Call aacDecoder_Open() to open and retrieve a handle to a new AAC decoder
+-# Call aacDecoder_Open() to open and retrieve a handle to a new AAC player.decoder
 instance. \code aacDecoderInfo = aacDecoder_Open(transportType, nrOfLayers);
 \endcode
 -# If out-of-band config data (Audio Specific Config (ASC) or Stream Mux Config
 (SMC)) is available, call aacDecoder_ConfigRaw() to pass this data to the
-decoder before beginning the decoding process. If this data is not available in
-advance, the decoder will configure itself while decoding, during the
+player.decoder before beginning the decoding process. If this data is not available in
+advance, the player.decoder will configure itself while decoding, during the
 aacDecoder_DecodeFrame() function call.
 -# Begin decoding loop.
 \code
@@ -188,16 +188,16 @@ do {
 \endcode
 -# Read data from bitstream file or stream buffer in to the driver program
 working memory (a client-supplied input buffer "inBuffer" in framework). This
-buffer will be used to load AAC bitstream data to the decoder.  Only when all
-data in this buffer has been processed will the decoder signal an empty buffer.
--# Call aacDecoder_Fill() to fill the decoder's internal bitstream input buffer
+buffer will be used to load AAC bitstream data to the player.decoder.  Only when all
+data in this buffer has been processed will the player.decoder signal an empty buffer.
+-# Call aacDecoder_Fill() to fill the player.decoder's internal bitstream input buffer
 with the client-supplied bitstream input buffer. Note, if the data loaded in to
 the internal buffer is not sufficient to decode a frame,
 aacDecoder_DecodeFrame() will return ::AAC_DEC_NOT_ENOUGH_BITS until a
 sufficient amount of data is loaded in to the internal buffer. For streaming
 formats (ADTS, LOAS), it is acceptable to load more than one frame to the
-decoder. However, for packed based formats, only one frame may be loaded to the
-decoder per aacDecoder_DecodeFrame() call. For least amount of communication
+player.decoder. However, for packed based formats, only one frame may be loaded to the
+player.decoder per aacDecoder_DecodeFrame() call. For least amount of communication
 delay, fill and decode should be performed on a frame by frame basis. \code
     ErrorStatus = aacDecoder_Fill(aacDecoderInfo, inBuffer, bytesRead,
 bytesValid); \endcode
@@ -214,7 +214,7 @@ information. You may use this data to initialize an audio output device. \code
 -# Repeat steps 5 to 7 until no data is available to decode any more, or in case
 of error. \code } while (bytesRead[0] > 0 || doFlush || doBsFlush ||
 forceContinue); \endcode
--# Call aacDecoder_Close() to de-allocate all AAC decoder and transport layer
+-# Call aacDecoder_Close() to de-allocate all AAC player.decoder and transport layer
 structures. \code aacDecoder_Close(aacDecoderInfo); \endcode
 
 \image latex decode.png "Decode calling sequence" width=11cm
@@ -227,11 +227,11 @@ structures. \code aacDecoder_Close(aacDecoderInfo); \endcode
 
 There are different strategies to handle bit stream errors. Depending on the
 system properties the product designer might choose to take different actions in
-case a bit error occurs. In many cases the decoder might be able to do
+case a bit error occurs. In many cases the player.decoder might be able to do
 reasonable error concealment without the need of any additional actions from the
 system. But in some cases its not even possible to know how many decoded PCM
 output samples are required to fill the gap due to the data error, then the
-software surrounding the decoder must deal with the situation. The most simple
+software surrounding the player.decoder must deal with the situation. The most simple
 way would be to just stop audio playback and resume once enough bit stream data
 and/or buffered output samples are available. More sophisticated designs might
 also be able to deal with sender/receiver clock drifts or data drop outs by
@@ -243,18 +243,18 @@ for error handling.
 
 The macro IS_OUTPUT_VALID(err) can be used to identify if the audio output
 buffer contains valid audio either from error free bit stream data or successful
-error concealment. In case the result is false, the decoder output buffer does
+error concealment. In case the result is false, the player.decoder output buffer does
 not contain meaningful audio samples and should not be passed to any output as
 it is. Most likely in case that a continuous audio output PCM stream is
 required, the output buffer must be filled with audio data from the calling
 framework. This might be e.g. an appropriate number of samples all zero.
 
-If error code ::AAC_DEC_TRANSPORT_SYNC_ERROR is returned by the decoder, under
+If error code ::AAC_DEC_TRANSPORT_SYNC_ERROR is returned by the player.decoder, under
 some particular conditions it is possible to estimate lost frames due to the bit
 stream error. In that case the bit stream is required to have a constant
 bitrate, and compatible transport type. Audio samples for the lost frames can be
 obtained by calling aacDecoder_DecodeFrame() with flag ::AACDEC_CONCEAL set
-n-times where n is the count of lost frames. Please note that the decoder has to
+n-times where n is the count of lost frames. Please note that the player.decoder has to
 have encountered valid configuration data at least once to be able to generate
 concealed data, because at the minimum the sampling rate, frame size and amount
 of audio channels needs to be known.
@@ -270,13 +270,13 @@ For a detailed description of a specific error code please refer also to
 
 \section BufferSystem Buffer System
 
-There are three main buffers in an AAC decoder application. One external input
-buffer to hold bitstream data from file I/O or elsewhere, one decoder-internal
+There are three main buffers in an AAC player.decoder application. One external input
+buffer to hold bitstream data from file I/O or elsewhere, one player.decoder-internal
 input buffer, and one to hold the decoded output PCM sample data. In resource
 limited applications, the output buffer may be reused as an external input
 buffer prior to the subsequence aacDecoder_Fill() function call.
 
-To feed the data to the decoder-internal input buffer, use the
+To feed the data to the player.decoder-internal input buffer, use the
 function aacDecoder_Fill(). This function returns important information
 regarding the number of bytes in the external input buffer that have not yet
 been copied into the internal input buffer (variable bytesValid). Once the
@@ -285,7 +285,7 @@ case you wish to refill the buffer while there are unprocessed bytes (bytesValid
 is unequal 0), you should preserve the unconsumed data. However, we recommend to
 refill the buffer only when bytesValid returns 0.
 
-The bytesValid parameter is an input and output parameter to the FDK decoder. As
+The bytesValid parameter is an input and output parameter to the FDK player.decoder. As
 an input, it signals how many valid bytes are available in the external buffer.
 After consumption of the external buffer using aacDecoder_Fill() function, the
 bytesValid parameter indicates if any of the bytes in the external buffer were
@@ -325,7 +325,7 @@ The examples below explain these aspects in detail.
 For MPEG-4 audio the channel order can be changed at runtime through the
 parameter
 ::AAC_PCM_OUTPUT_CHANNEL_MAPPING. See the description of those
-parameters and the decoder library function aacDecoder_SetParam() for more
+parameters and the player.decoder library function aacDecoder_SetParam() for more
 detail.
 
 \section OutputFormatExample Channel mapping examples
@@ -438,7 +438,7 @@ Where N equals to CStreamInfo::frameSize .
 #define AACDECODER_LIB_VL2 0
 
 /**
- * \brief  AAC decoder error codes.
+ * \brief  AAC player.decoder error codes.
  */
 typedef enum {
   AAC_DEC_OK =
@@ -451,7 +451,7 @@ typedef enum {
 
   /* Synchronization errors. Output buffer is invalid. */
   aac_dec_sync_error_start = 0x1000,
-  AAC_DEC_TRANSPORT_SYNC_ERROR = 0x1001, /*!< The transport decoder had
+  AAC_DEC_TRANSPORT_SYNC_ERROR = 0x1001, /*!< The transport player.decoder had
                                             synchronization problems. Do not
                                             exit decoding. Just feed new
                                               bitstream data. */
@@ -483,7 +483,7 @@ typedef enum {
   AAC_DEC_SET_PARAM_FAIL = 0x200A,  /*!< The parameter could not be set. Either
                                        the value was out of range or the
                                        parameter does  not exist. */
-  AAC_DEC_NEED_TO_RESTART = 0x200B, /*!< The decoder needs to be restarted,
+  AAC_DEC_NEED_TO_RESTART = 0x200B, /*!< The player.decoder needs to be restarted,
                                        since the required configuration change
                                        cannot be performed. */
   AAC_DEC_OUTPUT_BUFFER_TOO_SMALL =
@@ -493,7 +493,7 @@ typedef enum {
   /* Decode errors. Output buffer is valid but concealed. */
   aac_dec_decode_error_start = 0x4000,
   AAC_DEC_TRANSPORT_ERROR =
-      0x4001, /*!< The transport decoder encountered an unexpected error. */
+      0x4001, /*!< The transport player.decoder encountered an unexpected error. */
   AAC_DEC_PARSE_ERROR = 0x4002, /*!< Error while parsing the bitstream. Most
                                    probably it is corrupted, or the system
                                    crashed. */
@@ -610,11 +610,11 @@ typedef enum {
 } AAC_DRC_DEFAULT_PRESENTATION_MODE_OPTIONS;
 
 /**
- * \brief AAC decoder setting parameters
+ * \brief AAC player.decoder setting parameters
  */
 typedef enum {
   AAC_PCM_DUAL_CHANNEL_OUTPUT_MODE =
-      0x0002, /*!< Defines how the decoder processes two channel signals: \n
+      0x0002, /*!< Defines how the player.decoder processes two channel signals: \n
                    0: Leave both signals as they are (default). \n
                    1: Create a dual mono output signal from channel 1. \n
                    2: Create a dual mono output signal from channel 2. \n
@@ -629,7 +629,7 @@ typedef enum {
                                            non-lowdelay configurations by default. \n
                                               0: Disable limiter in general. \n
                                               1: Enable limiter always.
-                                             It is recommended to call the decoder
+                                             It is recommended to call the player.decoder
                                            with a AACDEC_CLRHIST flag to reset all
                                            states when      the limiter switch is changed
                                            explicitly. */
@@ -645,18 +645,18 @@ typedef enum {
       0x0011, /*!< Minimum number of PCM output channels. If higher than the
                  number of encoded audio channels, a simple channel extension is
                  applied (see note 4 for exceptions). \n -1, 0: Disable channel
-                 extension feature. The decoder output contains the same number
+                 extension feature. The player.decoder output contains the same number
                  of channels as the encoded bitstream. \n 1:    This value is
                  currently needed only together with the mix-down feature. See
                           ::AAC_PCM_MAX_OUTPUT_CHANNELS and note 2 below. \n
                     2:    Encoded mono signals will be duplicated to achieve a
-                 2/0/0.0 channel output configuration. \n 6:    The decoder
+                 2/0/0.0 channel output configuration. \n 6:    The player.decoder
                  tries to reorder encoded signals with less than six channels to
                  achieve a 3/0/2.1 channel output signal. Missing channels will
                  be filled with a zero signal. If reordering is not possible the
                  empty channels will simply be appended. Only available if
                  instance is configured to support multichannel output. \n 8:
-                 The decoder tries to reorder encoded signals with less than
+                 The player.decoder tries to reorder encoded signals with less than
                  eight channels to achieve a 3/0/4.1 channel output signal.
                  Missing channels will be filled with a zero signal. If
                  reordering is not possible the empty channels will simply be
@@ -677,13 +677,13 @@ typedef enum {
                  accordingly (see note 5 for exceptions). If dedicated metadata
                  is available in the stream it will be used to achieve better
                  mixing results. \n -1, 0: Disable downmixing feature. The
-                 decoder output contains the same number of channels as the
+                 player.decoder output contains the same number of channels as the
                  encoded bitstream. \n 1:    All encoded audio configurations
                  with more than one channel will be mixed down to one mono
-                 output signal. \n 2:    The decoder performs a stereo mix-down
+                 output signal. \n 2:    The player.decoder performs a stereo mix-down
                  if the number encoded audio channels is greater than two. \n 6:
                  If the number of encoded audio channels is greater than six the
-                 decoder performs a mix-down to meet the target output
+                 player.decoder performs a mix-down to meet the target output
                  configuration of 3/0/2.1 channels. Only available if instance
                  is configured to support multichannel output. \n 8:    This
                  value is currently needed only together with the channel
@@ -726,7 +726,7 @@ typedef enum {
                                             ::AAC_DRC_BOOST_FACTOR but for
                                           attenuating DRC factors. */
   AAC_DRC_REFERENCE_LEVEL =
-      0x0202, /*!< MPEG-4 / MPEG-D DRC: Target reference level / decoder target
+      0x0202, /*!< MPEG-4 / MPEG-D DRC: Target reference level / player.decoder target
                  loudness.\n Defines the level below full-scale (quantized in
                  steps of 0.25dB) to which the output audio signal will be
                  normalized to by the DRC module.\n The parameter controls
@@ -741,7 +741,7 @@ typedef enum {
                  loudness normalization and MPEG-4 DRC. */
   AAC_DRC_HEAVY_COMPRESSION =
       0x0203, /*!< MPEG-4 DRC: En-/Disable DVB specific heavy compression (aka
-                 RF mode). If set to 1, the decoder will apply the compression
+                 RF mode). If set to 1, the player.decoder will apply the compression
                  values from the DVB specific ancillary data field. At the same
                  time the MPEG-4 Dynamic Range Control tool will be disabled. By
                    default, heavy compression is disabled. */
@@ -784,7 +784,7 @@ typedef enum {
                     1: Use real (low power) QMF data mode. \n */
   AAC_TPDEC_CLEAR_BUFFER =
       0x0603 /*!< Clear internal bit stream buffer of transport layers. The
-                decoder will start decoding at new data passed after this event
+                player.decoder will start decoding at new data passed after this event
                 and any previous data is discarded. */
 
 } AACDEC_PARAM;
@@ -834,8 +834,8 @@ typedef struct {
                           a (ELD) downscale factor if present. */
 
   UINT outputDelay; /*!< The number of samples the output is additionally
-                       delayed by.the decoder. */
-  UINT flags; /*!< Copy of internal flags. Only to be written by the decoder,
+                       delayed by.the player.decoder. */
+  UINT flags; /*!< Copy of internal flags. Only to be written by the player.decoder,
                  and only to be read externally. */
 
   SCHAR epConfig; /*!< epConfig level (from ASC): only level 0 supported, -1
@@ -847,13 +847,13 @@ typedef struct {
                              < 0 if the estimation failed. */
 
   INT64 numTotalBytes; /*!< This is the number of total bytes that have passed
-                          through the decoder. */
+                          through the player.decoder. */
   INT64
   numBadBytes; /*!< This is the number of total bytes that were considered
                   with errors from numTotalBytes. */
   INT64
   numTotalAccessUnits;     /*!< This is the number of total access units that
-                              have passed through the decoder. */
+                              have passed through the player.decoder. */
   INT64 numBadAccessUnits; /*!< This is the number of total access units that
                               were considered with errors from numTotalBytes. */
 
@@ -889,7 +889,7 @@ typedef struct {
 } CStreamInfo;
 
 typedef struct AAC_DECODER_INSTANCE
-    *HANDLE_AACDECODER; /*!< Pointer to a AAC decoder instance. */
+    *HANDLE_AACDECODER; /*!< Pointer to a AAC player.decoder instance. */
 
 #ifdef __cplusplus
 extern "C" {
@@ -898,7 +898,7 @@ extern "C" {
 /**
  * \brief Initialize ancillary data buffer.
  *
- * \param self    AAC decoder handle.
+ * \param self    AAC player.decoder handle.
  * \param buffer  Pointer to (external) ancillary data buffer.
  * \param size    Size of the buffer pointed to by buffer.
  * \return        Error code.
@@ -909,7 +909,7 @@ LINKSPEC_H AAC_DECODER_ERROR aacDecoder_AncDataInit(HANDLE_AACDECODER self,
 /**
  * \brief Get one ancillary data element.
  *
- * \param self   AAC decoder handle.
+ * \param self   AAC player.decoder handle.
  * \param index  Index of the ancillary data element to get.
  * \param ptr    Pointer to a buffer receiving a pointer to the requested
  * ancillary data element.
@@ -922,9 +922,9 @@ LINKSPEC_H AAC_DECODER_ERROR aacDecoder_AncDataGet(HANDLE_AACDECODER self,
                                                    int *size);
 
 /**
- * \brief Set one single decoder parameter.
+ * \brief Set one single player.decoder parameter.
  *
- * \param self   AAC decoder handle.
+ * \param self   AAC player.decoder handle.
  * \param param  Parameter to be set.
  * \param value  Parameter value.
  * \return       Error code.
@@ -934,33 +934,33 @@ LINKSPEC_H AAC_DECODER_ERROR aacDecoder_SetParam(const HANDLE_AACDECODER self,
                                                  const INT value);
 
 /**
- * \brief              Get free bytes inside decoder internal buffer.
- * \param self         Handle of AAC decoder instance.
+ * \brief              Get free bytes inside player.decoder internal buffer.
+ * \param self         Handle of AAC player.decoder instance.
  * \param pFreeBytes   Pointer to variable receiving amount of free bytes inside
- * decoder internal buffer.
+ * player.decoder internal buffer.
  * \return             Error code.
  */
 LINKSPEC_H AAC_DECODER_ERROR
 aacDecoder_GetFreeBytes(const HANDLE_AACDECODER self, UINT *pFreeBytes);
 
 /**
- * \brief               Open an AAC decoder instance.
+ * \brief               Open an AAC player.decoder instance.
  * \param transportFmt  The transport type to be used.
  * \param nrOfLayers    Number of transport layers.
- * \return              AAC decoder handle.
+ * \return              AAC player.decoder handle.
  */
 LINKSPEC_H HANDLE_AACDECODER aacDecoder_Open(TRANSPORT_TYPE transportFmt,
                                              UINT nrOfLayers);
 
 /**
- * \brief Explicitly configure the decoder by passing a raw AudioSpecificConfig
+ * \brief Explicitly configure the player.decoder by passing a raw AudioSpecificConfig
  * (ASC) or a StreamMuxConfig (SMC), contained in a binary buffer. This is
  * required for MPEG-4 and Raw Packets file format bitstreams as well as for
  * LATM bitstreams with no in-band SMC. If the transport format is LATM with or
  * without LOAS, configuration is assumed to be an SMC, for all other file
  * formats an ASC.
  *
- * \param self    AAC decoder handle.
+ * \param self    AAC player.decoder handle.
  * \param conf    Pointer to an unsigned char buffer containing the binary
  * configuration buffer (either ASC or SMC).
  * \param length  Length of the configuration buffer in bytes.
@@ -971,10 +971,10 @@ LINKSPEC_H AAC_DECODER_ERROR aacDecoder_ConfigRaw(HANDLE_AACDECODER self,
                                                   const UINT length[]);
 
 /**
- * \brief Submit raw ISO base media file format boxes to decoder for parsing
+ * \brief Submit raw ISO base media file format boxes to player.decoder for parsing
  * (only some box types are recognized).
  *
- * \param self    AAC decoder handle.
+ * \param self    AAC player.decoder handle.
  * \param buffer  Pointer to an unsigned char buffer containing the binary box
  * data (including size and type, can be a sequence of multiple boxes).
  * \param length  Length of the data in bytes.
@@ -985,24 +985,24 @@ LINKSPEC_H AAC_DECODER_ERROR aacDecoder_RawISOBMFFData(HANDLE_AACDECODER self,
                                                        UINT length);
 
 /**
- * \brief Fill AAC decoder's internal input buffer with bitstream data from the
+ * \brief Fill AAC player.decoder's internal input buffer with bitstream data from the
  * external input buffer. The function only copies such data as long as the
- * decoder-internal input buffer is not full. So it grabs whatever it can from
+ * player.decoder-internal input buffer is not full. So it grabs whatever it can from
  * pBuffer and returns information (bytesValid) so that at a subsequent call of
  * %aacDecoder_Fill(), the right position in pBuffer can be determined to grab
  * the next data.
  *
- * \param self        AAC decoder handle.
+ * \param self        AAC player.decoder handle.
  * \param pBuffer     Pointer to external input buffer.
  * \param bufferSize  Size of external input buffer. This argument is required
- * because decoder-internally we need the information to calculate the offset to
+ * because player.decoder-internally we need the information to calculate the offset to
  * pBuffer, where the next available data is, which is then
- * fed into the decoder-internal buffer (as much as
+ * fed into the player.decoder-internal buffer (as much as
  * possible). Our example framework implementation fills the
  * buffer at pBuffer again, once it contains no available valid bytes anymore
  * (meaning bytesValid equal 0).
  * \param bytesValid  Number of bitstream bytes in the external bitstream buffer
- * that have not yet been copied into the decoder's internal bitstream buffer by
+ * that have not yet been copied into the player.decoder's internal bitstream buffer by
  * calling this function. The value is updated according to
  * the amount of newly copied bytes.
  * \return            Error code.
@@ -1034,11 +1034,11 @@ LINKSPEC_H AAC_DECODER_ERROR aacDecoder_Fill(HANDLE_AACDECODER self,
 /**
  * \brief               Decode one audio frame
  *
- * \param self          AAC decoder handle.
+ * \param self          AAC player.decoder handle.
  * \param pTimeData     Pointer to external output buffer where the decoded PCM
  * samples will be stored into.
  * \param timeDataSize  Size of external output buffer.
- * \param flags         Bit field with flags for the decoder: \n
+ * \param flags         Bit field with flags for the player.decoder: \n
  *                      (flags & AACDEC_CONCEAL) == 1: Do concealment. \n
  *                      (flags & AACDEC_FLUSH) == 2: Discard input data. Flush
  * filter banks (output delayed audio). \n (flags & AACDEC_INTR) == 4: Input
@@ -1053,23 +1053,23 @@ LINKSPEC_H AAC_DECODER_ERROR aacDecoder_DecodeFrame(HANDLE_AACDECODER self,
                                                     const UINT flags);
 
 /**
- * \brief       De-allocate all resources of an AAC decoder instance.
+ * \brief       De-allocate all resources of an AAC player.decoder instance.
  *
- * \param self  AAC decoder handle.
+ * \param self  AAC player.decoder handle.
  * \return      void.
  */
 LINKSPEC_H void aacDecoder_Close(HANDLE_AACDECODER self);
 
 /**
- * \brief       Get CStreamInfo handle from decoder.
+ * \brief       Get CStreamInfo handle from player.decoder.
  *
- * \param self  AAC decoder handle.
+ * \param self  AAC player.decoder handle.
  * \return      Reference to requested CStreamInfo.
  */
 LINKSPEC_H CStreamInfo *aacDecoder_GetStreamInfo(HANDLE_AACDECODER self);
 
 /**
- * \brief       Get decoder library info.
+ * \brief       Get player.decoder library info.
  *
  * \param info  Pointer to an allocated LIB_INFO structure.
  * \return      0 on success.

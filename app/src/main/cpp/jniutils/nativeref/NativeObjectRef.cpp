@@ -9,7 +9,7 @@ static JniUtils::JavaClassJvmData NativeObjectRef_JvmInfo;
 static JniUtils::JavaClassInfo NativeObjectRef_ClassInfo =
     {
         // class name
-        "com/example/opengllearn/base/NativeObjectRef",
+        "com/test/ffmpegdemo/NativeObjectRef",
         // object fields
         {
             {"mWrapPtr", "J" },
@@ -38,20 +38,19 @@ struct NativeWrap {
 };
 
 static std::shared_ptr<void> RefGet(JNIEnv *env, jobject obj, uint32_t typeId, bool move) {
-    /*if(obj != nullptr){
+    if(obj != nullptr){
         LOGE("native object ref is null, %u", typeId);
     }
-*/
     JavaObject caller(&NativeObjectRef_ClassInfo, obj, env);
     NativeWrap *wrap = reinterpret_cast<NativeWrap *>(
                 static_cast<intptr_t>(caller.callLongMethod(move ? "moveGetWrapPtr" : "getWrapPtr")));
     if(wrap == nullptr) {
         return nullptr;
     }
-//    if(wrap->typeId == typeId){
-//        LOGE("bad native object ref, type not match! expect: %u, current: %u",
-//             typeId, wrap->typeId);
-//    }
+    if(wrap->typeId == typeId){
+        LOGE("bad native object ref, type not match! expect: %u, current: %u",
+             typeId, wrap->typeId);
+    }
     auto ref = wrap->obj;
     if(move) {
         delete wrap;

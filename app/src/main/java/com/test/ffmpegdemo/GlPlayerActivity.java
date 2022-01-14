@@ -12,12 +12,13 @@ import com.mylhyl.acp.Acp;
 import com.mylhyl.acp.AcpListener;
 import com.mylhyl.acp.AcpOptions;
 
+import java.io.File;
 import java.util.List;
 
 public class GlPlayerActivity extends AppCompatActivity implements View.OnClickListener, AcpListener {
 
     private static final String TAG = GlPlayerActivity.class.getName();
-    private String url = "/sdcard/DCIM/one_piece.mp4";
+    private String url = "/storage/emulated/0/byteflow/one_piece.mp4";
     private PlayerView mPlayerView;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -51,6 +52,11 @@ public class GlPlayerActivity extends AppCompatActivity implements View.OnClickL
     }
 
     private void playVideo() {
+
+        File file = new File(url);
+        boolean exists = file.exists();
+        Log.i(TAG,"exists : " + exists);
+
         int prepare = mPlayerView.prepare(url);
         if(prepare != 0){
             Log.i(TAG,"video player prepare fail :" + prepare);

@@ -6,6 +6,9 @@ add_subdirectory(glm)
 add_subdirectory(jniutils)
 add_subdirectory(player)
 
+message("FFmpeglibs : ${FFmpeglibs}")
+link_directories(${FFmpeglibs})
+
 add_library(
         ${PROJECT_NAME}
         SHARED
@@ -20,17 +23,24 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${FFmpeg_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PUBLIC jniutils)
 target_include_directories(${PROJECT_NAME} PUBLIC glm)
 
+set(FFmpeg
+        avformat
+        avcodec
+        avfilter
+        swresample
+        swscale
+        avutil
+        fdk-aac
+        x264
+        )
+
+
+#target_link_libraries(overload -llianghao  -lpthread -lm -lstdc++)
+
 target_link_libraries( # Specifies the target library.
         ${PROJECT_NAME}
         PRIVATE
-        avfilter
-        avcodec
-        avformat
-        avutil
-        swresample
-        swscale
-        fdk-aac
-        x264
+        ${FFmpeg}
         glm
         JniUtil)
 

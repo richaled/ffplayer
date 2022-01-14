@@ -80,14 +80,14 @@ typedef int (*AVVDPAU_Render2)(struct AVCodecContext *, struct AVFrame *,
  */
 typedef struct AVVDPAUContext {
     /**
-     * VDPAU player.decoder handle
+     * VDPAU decoder handle
      *
      * Set by user.
      */
     VdpDecoder decoder;
 
     /**
-     * VDPAU player.decoder player.render callback
+     * VDPAU decoder render callback
      *
      * Set by the user.
      */
@@ -155,7 +155,7 @@ AVVDPAUContext *av_vdpau_alloc_context(void);
 
 #if FF_API_VDPAU_PROFILE
 /**
- * Get a player.decoder profile that should be used for initializing a VDPAU player.decoder.
+ * Get a decoder profile that should be used for initializing a VDPAU decoder.
  * Should be called from the AVCodecContext.get_format() callback.
  *
  * @deprecated Use av_vdpau_bind_context() instead.

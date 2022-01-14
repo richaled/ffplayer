@@ -53,8 +53,8 @@ int VideoDecoder::InitFFDecoder() {
     }
     //获取解码器参数
     AVCodecParameters *codecParameters = avFormatContext_->streams[streamIndex_]->codecpar;
-    avCodec_ = avcodec_find_encoder(codecParameters->codec_id);
-//    avCodec_ = avcodec_find_decoder_by_name("h264_mediacodec");
+    avCodec_ = avcodec_find_decoder(codecParameters->codec_id);
+//    avCodec_ = avcodec_find_decoder_by_name("h264");
     if(avCodec_ == nullptr){
         LOGE("DecoderBase::InitFFDecoder avcodec_find_decoder fail.");
         return static_cast<int >(DecoderMsg::MSG_DECODER_INIT_ERROR);
@@ -70,6 +70,7 @@ int VideoDecoder::InitFFDecoder() {
         LOGE("DecoderBase::InitFFDecoder avcodec_open2 fail. result=%d", result);
         return static_cast<int >(DecoderMsg::MSG_DECODER_INIT_ERROR);
     }
+    LOGI("codec open success");
     //获取视频的时长
     duration_ = avFormatContext_->duration / AV_TIME_BASE * 1000;
 

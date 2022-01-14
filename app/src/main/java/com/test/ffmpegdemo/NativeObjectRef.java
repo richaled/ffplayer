@@ -9,9 +9,9 @@ public class NativeObjectRef {
     private boolean mRequireFreeManually;
 
     static {
-        System.loadLibrary("avformat");
-        System.loadLibrary("avcodec");
-        System.loadLibrary("avfilter");
+//        System.loadLibrary("avformat");
+//        System.loadLibrary("avcodec");
+//        System.loadLibrary("avfilter");
         System.loadLibrary("ffmpegdemo");
     }
 

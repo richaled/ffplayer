@@ -59,7 +59,7 @@ typedef struct AVDXVA2FramesContext {
     int              nb_surfaces;
 
     /**
-     * Certain drivers require the player.decoder to be destroyed before the surfaces.
+     * Certain drivers require the decoder to be destroyed before the surfaces.
      * To allow internally managed pools to work properly in such cases, this
      * field is provided.
      *
@@ -67,7 +67,7 @@ typedef struct AVDXVA2FramesContext {
      * it just before the internal surface pool is freed.
      *
      * This is for convenience only. Some code uses other methods to manage the
-     * player.decoder reference.
+     * decoder reference.
      */
     IDirectXVideoDecoder *decoder_to_release;
 } AVDXVA2FramesContext;

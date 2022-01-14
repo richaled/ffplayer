@@ -100,7 +100,7 @@ typedef struct AVClass {
 
     /**
      * Offset in the structure where a pointer to the parent context for
-     * logging is stored. For example a player.decoder could pass its AVCodecContext
+     * logging is stored. For example a decoder could pass its AVCodecContext
      * to eval as such a parent context, which an av_log() implementation
      * could then leverage to display the parent context.
      * The offset can be NULL.

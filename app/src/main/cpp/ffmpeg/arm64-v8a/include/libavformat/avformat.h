@@ -1043,9 +1043,9 @@ typedef struct AVStream {
         int frame_delay_evidence;
 
         /**
-         * 0  -> player.decoder has not been searched for yet.
-         * >0 -> player.decoder found
-         * <0 -> player.decoder with codec_id == -found_decoder has not been found
+         * 0  -> decoder has not been searched for yet.
+         * >0 -> decoder found
+         * <0 -> decoder with codec_id == -found_decoder has not been found
          */
         int found_decoder;
 
@@ -1806,7 +1806,7 @@ typedef struct AVFormatContext {
 
     /**
      * Forced video codec.
-     * This allows forcing a specific player.decoder, even when there are multiple with
+     * This allows forcing a specific decoder, even when there are multiple with
      * the same codec_id.
      * Demuxing: Set by user
      */
@@ -1814,7 +1814,7 @@ typedef struct AVFormatContext {
 
     /**
      * Forced audio codec.
-     * This allows forcing a specific player.decoder, even when there are multiple with
+     * This allows forcing a specific decoder, even when there are multiple with
      * the same codec_id.
      * Demuxing: Set by user
      */
@@ -1822,7 +1822,7 @@ typedef struct AVFormatContext {
 
     /**
      * Forced subtitle codec.
-     * This allows forcing a specific player.decoder, even when there are multiple with
+     * This allows forcing a specific decoder, even when there are multiple with
      * the same codec_id.
      * Demuxing: Set by user
      */
@@ -1830,7 +1830,7 @@ typedef struct AVFormatContext {
 
     /**
      * Forced data codec.
-     * This allows forcing a specific player.decoder, even when there are multiple with
+     * This allows forcing a specific decoder, even when there are multiple with
      * the same codec_id.
      * Demuxing: Set by user
      */
@@ -2355,8 +2355,8 @@ void av_program_add_stream_index(AVFormatContext *ac, int progid, unsigned int i
  * Find the "best" stream in the file.
  * The best stream is determined according to various heuristics as the most
  * likely to be what the user expects.
- * If the player.decoder parameter is non-NULL, av_find_best_stream will find the
- * default player.decoder for the stream's codec; streams for which no player.decoder can
+ * If the decoder parameter is non-NULL, av_find_best_stream will find the
+ * default decoder for the stream's codec; streams for which no decoder can
  * be found are ignored.
  *
  * @param ic                media file handle
@@ -2365,13 +2365,13 @@ void av_program_add_stream_index(AVFormatContext *ac, int progid, unsigned int i
  *                          or -1 for automatic selection
  * @param related_stream    try to find a stream related (eg. in the same
  *                          program) to this one, or -1 if none
- * @param decoder_ret       if non-NULL, returns the player.decoder for the
+ * @param decoder_ret       if non-NULL, returns the decoder for the
  *                          selected stream
  * @param flags             flags; none are currently defined
  * @return  the non-negative stream number in case of success,
  *          AVERROR_STREAM_NOT_FOUND if no stream with the requested type
  *          could be found,
- *          AVERROR_DECODER_NOT_FOUND if streams were found but no player.decoder
+ *          AVERROR_DECODER_NOT_FOUND if streams were found but no decoder
  * @note  If av_find_best_stream returns successfully and decoder_ret is not
  *        NULL, then *decoder_ret is guaranteed to be set to a valid AVCodec.
  */
@@ -2385,9 +2385,9 @@ int av_find_best_stream(AVFormatContext *ic,
 /**
  * Return the next frame of a stream.
  * This function returns what is stored in the file, and does not validate
- * that what is there are valid frames for the player.decoder. It will split what is
+ * that what is there are valid frames for the decoder. It will split what is
  * stored in the file into frames and return one for each call. It will not
- * omit invalid data between valid frames so as to give the player.decoder the maximum
+ * omit invalid data between valid frames so as to give the decoder the maximum
  * information possible for decoding.
  *
  * If pkt->buf is NULL, then the packet is valid until the next

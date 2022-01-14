@@ -56,12 +56,12 @@
  */
 struct dxva_context {
     /**
-     * DXVA2 player.decoder object
+     * DXVA2 decoder object
      */
     IDirectXVideoDecoder *decoder;
 
     /**
-     * DXVA2 configuration used to create the player.decoder
+     * DXVA2 configuration used to create the decoder
      */
     const DXVA2_ConfigPictureDecode *cfg;
 
@@ -71,12 +71,12 @@ struct dxva_context {
     unsigned surface_count;
 
     /**
-     * The array of Direct3D surfaces used to create the player.decoder
+     * The array of Direct3D surfaces used to create the decoder
      */
     LPDIRECT3DSURFACE9 *surface;
 
     /**
-     * A bit field configuring the workarounds needed for using the player.decoder
+     * A bit field configuring the workarounds needed for using the decoder
      */
     uint64_t workaround;
 

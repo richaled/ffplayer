@@ -2,9 +2,7 @@ cmake_minimum_required(VERSION 3.6)
 
 project("FFmpeg")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
-set(src-files empty.cpp)
-message("src-file ${src-files}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -lz")
 
 #add_library( # Sets the name of the library.
 #        ${PROJECT_NAME}
@@ -12,7 +10,7 @@ message("src-file ${src-files}")
 #        ${src-file}
 #        )
 
-add_library(avcodec
+#[[add_library(avcodec
         SHARED
         IMPORTED GLOBAL)
 
@@ -70,9 +68,13 @@ add_library(x264
 set_target_properties(x264 PROPERTIES
         IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/${ANDROID_ABI}/lib/libx264.a
         INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/${ANDROID_ABI}/include
-        )
+        )]]
 
 set(FFmpeg_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/${ANDROID_ABI}/include" CACHE INTERNAL "ffmpeg include dir")
+
+set(FFmpeglibs "${CMAKE_CURRENT_SOURCE_DIR}/${ANDROID_ABI}/lib" CACHE INTERNAL "ffmpeg lib dir")
+
+
 
 #[[
 target_link_libraries(${PROJECT_NAME}

@@ -11,7 +11,7 @@ public:
 class VideoRender {
 public:
     virtual void Init(int videoWidth, int videoHeight, int *dstSize) = 0;
-    virtual void RenderFrame() = 0;
+    virtual void RenderFrame(NativeImage *nativeImage) = 0;
     virtual void UnInit() = 0;
 };
 

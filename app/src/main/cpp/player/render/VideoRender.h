@@ -14,7 +14,7 @@ public:
     ~OpenGlVideoRender();
 
     void Init(int videoWidth, int videoHeight, int *dstSize) override ;
-    void RenderFrame() override ;
+    void RenderFrame(NativeImage *nativeImage) override ;
     void UnInit() override ;
 
     void OnSurfaceCreated();

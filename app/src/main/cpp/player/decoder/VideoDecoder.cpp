@@ -94,6 +94,8 @@ void VideoDecoder::UnInitDecoder() {
 void VideoDecoder::StartDecodingThread() {
     auto loop_func = [&]() {
         if (InitFFDecoder() != 0){
+            //callback todo
+
             return;
         }
         OnDecoderReady();
@@ -104,20 +106,22 @@ void VideoDecoder::StartDecodingThread() {
 
     };
     thread_ = std::thread(loop_func);
-
 }
 
 void VideoDecoder::OnDecoderReady() {
-    LOGI("VideoDecoder::OnDecoderReady");
+    METHOD
     m_VideoWidth = avCodecContext_->width;
     m_VideoHeight = avCodecContext_->height;
-
+    LOGI("width : %d, height %d",m_VideoWidth,m_VideoHeight);
     //回调ready todo
-//    if(videorender_){
-//        videorender_->Init(m_VideoWidth,m_VideoHeight,0);
-//        如果渲染到anwindow上
-//
-//    }
+    if(videorender_){
+        int dstSize[2] = {0};
+        videorender_->Init(m_VideoWidth,m_VideoHeight,dstSize);
+        //如果渲染到anwindow上
+
+    } else{
+        LOGE("video render is null");
+    }
 }
 
 void VideoDecoder::OnDecoderDone() {
@@ -160,26 +164,28 @@ int VideoDecoder::DecodeOnePacket(){
         if(avPacket->stream_index == streamIndex_){
             if(avcodec_send_packet(avCodecContext_,avPacket) == AVERROR_EOF){
                 result = -1;
-                goto ERROR;
+                goto FINISH;
             }
             long frameCount = 0;
             while (avcodec_receive_frame(avCodecContext_,avFrame_) == 0){
+                LOGI("receive frame : %ld",avFrame_->pts);
                 //更新时间戳
                 UpdateTimeStamp();
                 //同步
                 AVSync();
                 //渲染
+                onFrameAvailable(avFrame_);
                 frameCount ++;
             }
             if(frameCount > 0){
                 result = 0;
-                goto ERROR;
+                goto FINISH;
             }
         }
         av_packet_unref(avPacket);
         result = av_read_frame(avFormatContext_,avPacket);
     }
-    ERROR:
+    FINISH:
     av_packet_unref(avPacket);
     return result;
 }
@@ -209,6 +215,24 @@ long VideoDecoder::AVSync() {
     }
     delay = elapsedTime - currentTimeStamp;
     return delay;
+}
+
+void VideoDecoder::onFrameAvailable(AVFrame *avFrame){
+    if(!videorender_){
+        return;
+    }
+    //get avFrameType
+    LOGI("get avFrame type : %d",avFrame->format);
+    NativeImage image;
+    switch (avFrame->format) {
+        case AV_PIX_FMT_YUV420P:
+            break;
+        case AV_PIX_FMT_NV12:
+            break;
+
+    }
+    videorender_->RenderFrame(&image);
+
 }
 
 

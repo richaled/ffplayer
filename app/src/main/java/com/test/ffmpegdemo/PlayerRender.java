@@ -1,20 +1,17 @@
 package com.test.ffmpegdemo;
 
 import android.opengl.GLSurfaceView;
+import android.util.Log;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 public class PlayerRender extends NativeObjectRef implements GLSurfaceView.Renderer {
-
-    static {
-        System.loadLibrary("ffmpegdemo");
-    }
+    private static final String TAG = PlayerRender.class.getName();
 
     public PlayerRender(){
         this(nativeCreateRender());
     }
-
 
     private PlayerRender(long wrapPtr) {
         super(wrapPtr,"PlayerRender");
@@ -22,16 +19,19 @@ public class PlayerRender extends NativeObjectRef implements GLSurfaceView.Rende
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+        Log.i(TAG,"onSurfaceCreated");
         nativeOnSurfaceCreated();
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
+        Log.i(TAG,"onSurfaceChanged");
         nativeonSurfaceChanged(width,height);
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
+        Log.i(TAG,"onDrawFrame");
         nativeonDrawFrame();
     }
 

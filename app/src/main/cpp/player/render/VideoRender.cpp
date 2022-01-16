@@ -54,11 +54,32 @@ OpenGlVideoRender::~OpenGlVideoRender() {
 
 void OpenGlVideoRender::Init(int videoWidth, int videoHeight, int *dstSize) {
     m_FrameIndex = 0;
+    if(dstSize != nullptr) {
+        dstSize[0] = videoWidth;
+        dstSize[1] = videoHeight;
+    }
     UpdateMVPMatrix(0, 0, 1.0f, 1.0f);
 }
 
-void OpenGlVideoRender::RenderFrame() {
-
+void OpenGlVideoRender::RenderFrame(NativeImage *image) {
+    METHOD
+    if(image == nullptr || image->ppPlane == nullptr){
+        return;
+    }
+    std::unique_lock<std::mutex> lock(mutex_);
+    //设置要渲染的nativeImage
+    if(image->width != renderImage_.width || image->height != renderImage_.height){
+        if(renderImage_.ppPlane[0] != nullptr){
+            NativeImageUtil::FreeNativeImage(&renderImage_);
+        }
+        memset(&renderImage_,0,sizeof(NativeImage));
+        renderImage_.format = image->format;
+        renderImage_.width = image->width;
+        renderImage_.height = image->height;
+        NativeImageUtil::AllocNativeImage(&renderImage_);
+    }
+    //cpoy data
+    NativeImageUtil::CopyNativeImage(image,&renderImage_);
 }
 
 void OpenGlVideoRender::UnInit() {
@@ -121,6 +142,7 @@ void OpenGlVideoRender::OnSurfaceChanged(int width, int height) {
 }
 
 void OpenGlVideoRender::OnDrawFrame() {
+    METHOD
     glClear(GL_COLOR_BUFFER_BIT);
 //    if(m_ProgramObj == GL_NONE || m_TextureId == GL_NONE || m_RenderImage.ppPlane[0] == nullptr) return;
 //    LOGCATE("OpenGLRender::OnDrawFrame [w, h]=[%d, %d]", m_RenderImage.width, m_RenderImage.height);

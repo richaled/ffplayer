@@ -60,6 +60,8 @@ private:
     //解码一个packet编码数据
     int DecodeOnePacket();
 
+    void onFrameAvailable(AVFrame *avFrame);
+
 private:
     AVFormatContext *avFormatContext_;
     AVCodecContext *avCodecContext_;

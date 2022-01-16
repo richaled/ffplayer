@@ -17,14 +17,14 @@ Java_com_test_ffmpegdemo_VideoPlayer_nativeCreateVideoPlayer(JNIEnv *env, jclass
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_test_ffmpegdemo_VideoPlayer_nativePrepare(JNIEnv *env, jobject thiz, jstring url) {
+Java_com_test_ffmpegdemo_VideoPlayer_nativePrepare(JNIEnv *env, jobject thiz, jstring url,jobject playerRender) {
     std::shared_ptr<VideoPlayer> player = JniUtils::CopyRefGet<VideoPlayer>(
             env, thiz, kPlayer);
     if (player == nullptr || url == nullptr){
         return -1;
     }
     std::shared_ptr<OpenGlVideoRender> render = JniUtils::CopyRefGet<OpenGlVideoRender>(
-            env, thiz, kGlRender);
+            env, playerRender, kGlRender);
     player->Init(JniUtils::JavaStringToString(url,env),render);
     return 0;
 }

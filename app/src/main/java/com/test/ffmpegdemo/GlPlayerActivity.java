@@ -18,7 +18,7 @@ import java.util.List;
 public class GlPlayerActivity extends AppCompatActivity implements View.OnClickListener, AcpListener {
 
     private static final String TAG = GlPlayerActivity.class.getName();
-    private String url = "/storage/emulated/0/byteflow/one_piece.mp4";
+    private String url = "/sdcard/DCIM/one_piece.mp4";
     private PlayerView mPlayerView;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

@@ -1,21 +1,28 @@
 package com.test.ffmpegdemo;
 
+import android.app.ActivityManager;
 import android.content.Context;
+import android.content.pm.ConfigurationInfo;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.SurfaceView;
+import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import static android.content.Context.ACTIVITY_SERVICE;
 
 /**
  * 播放器view
  */
 public class PlayerView extends FrameLayout {
 
-//    private SurfaceView surfaceView;
+    private static final String TAG = PlayerView.class.getName();
     private GLSurfaceView glSurfaceView;
     private VideoPlayer videoPlayer;
     public PlayerView(@NonNull Context context) {
@@ -34,9 +41,26 @@ public class PlayerView extends FrameLayout {
         super(context, attrs, defStyleAttr, defStyleRes);
 
         glSurfaceView = new GLSurfaceView(context);
-        videoPlayer = new VideoPlayer(context);
-        PlayerRender playerRender = new PlayerRender();
-        glSurfaceView.setRenderer(playerRender);
+        final ActivityManager activityManager = (ActivityManager) context.getSystemService(ACTIVITY_SERVICE);
+        final ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
+        final boolean supportsGLES3 = configurationInfo.reqGlEsVersion >= 0x30000;
+        if(supportsGLES3){
+            glSurfaceView.setEGLContextClientVersion(3);
+        }else{
+            Log.i(TAG,"not support gles3");
+        }
+//        glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        this.addView(glSurfaceView);
+
+        videoPlayer = new VideoPlayer(context,glSurfaceView);
+    }
+
+    private void setLayoutParams(View view){
+//        MarginLayoutParams margin = new MarginLayoutParams(view.getLayoutParams());
+//        FrameLayout.LayoutParams layoutParams = view.getLayoutParams();//new FrameLayout.LayoutParams(margin);
+//        layoutParams.width = 1000 ;
+//        layoutParams.height = 800 ;
+//        view.setLayoutParams(layoutParams);
     }
 
     public int prepare(String url){
@@ -58,8 +82,5 @@ public class PlayerView extends FrameLayout {
     public void release(){
         videoPlayer.release();
     }
-
-
-
 
 }

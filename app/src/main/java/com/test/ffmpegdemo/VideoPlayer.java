@@ -14,31 +14,19 @@ import javax.microedition.khronos.opengles.GL10;
 
 import static android.content.Context.ACTIVITY_SERVICE;
 
-public class VideoPlayer extends NativeObjectRef{
+public class VideoPlayer extends NativeObjectRef {
     private static final String TAG = VideoPlayer.class.getName();
 
-    private GLSurfaceView surfaceView;
     private PlayerRender playerRender;
     private Context mContext;
     private boolean mIsPrepare = false;
     private boolean mIsRelease = false;
 
-    public VideoPlayer(Context context){
+    public VideoPlayer(Context context,GLSurfaceView glSurfaceView){
         this(nativeCreateVideoPlayer());
         this.mContext = context;
-        surfaceView = new GLSurfaceView(mContext);
-
-        final ActivityManager activityManager = (ActivityManager) mContext.getSystemService(ACTIVITY_SERVICE);
-        final ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
-        final boolean supportsGLES3 = configurationInfo.reqGlEsVersion >= 0x30000;
-        if(supportsGLES3){
-            surfaceView.setEGLContextClientVersion(3);
-        }else{
-            Log.i(TAG,"not support gles3");
-        }
         playerRender = new PlayerRender();
-        surfaceView.setRenderer(playerRender);
-        surfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        glSurfaceView.setRenderer(playerRender);
 
     }
 
@@ -66,12 +54,10 @@ public class VideoPlayer extends NativeObjectRef{
 
     public void play(){
         nativePlay();
-        surfaceView.onResume();
     }
 
     public void pause(){
         nativePause();
-        surfaceView.onPause();
     }
 
     public void stop(){
@@ -102,4 +88,12 @@ public class VideoPlayer extends NativeObjectRef{
     private native void nativePause();
     private native void nativeStop();
     private native void nativeRelease();
+
+    public interface OnPlayerStateCallback{
+        void onPLayState();
+    }
+
+    public interface OnPlayProgressCallback{
+        void onPlayProgress(float progress, float total);
+    }
 }

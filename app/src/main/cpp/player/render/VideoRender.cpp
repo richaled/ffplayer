@@ -21,12 +21,57 @@ static char fShaderStr[] =
         "precision highp float;\n"
         "in vec2 v_texCoord;\n"
         "layout(location = 0) out vec4 outColor;\n"
-        "uniform sampler2D s_TextureMap;//采样器\n"
+        "uniform sampler2D s_texture0;\n"
+        "uniform sampler2D s_texture1;\n"
+        "uniform sampler2D s_texture2;\n"
+        "uniform int u_nImgType;// 1:RGBA, 2:NV21, 3:NV12, 4:I420\n"
+        "\n"
         "void main()\n"
         "{\n"
-        "    outColor = texture(s_TextureMap, v_texCoord);\n"
+        "\n"
+        "    if(u_nImgType == 1) //RGBA\n"
+        "    {\n"
+        "        outColor = texture(s_texture0, v_texCoord);\n"
+        "    }\n"
+        "    else if(u_nImgType == 2) //NV21\n"
+        "    {\n"
+        "        vec3 yuv;\n"
+        "        yuv.x = texture(s_texture0, v_texCoord).r;\n"
+        "        yuv.y = texture(s_texture1, v_texCoord).a - 0.5;\n"
+        "        yuv.z = texture(s_texture1, v_texCoord).r - 0.5;\n"
+        "        highp vec3 rgb = mat3(1.0,       1.0,     1.0,\n"
+        "        0.0, \t-0.344, \t1.770,\n"
+        "        1.403,  -0.714,     0.0) * yuv;\n"
+        "        outColor = vec4(rgb, 1.0);\n"
+        "\n"
+        "    }\n"
+        "    else if(u_nImgType == 3) //NV12\n"
+        "    {\n"
+        "        vec3 yuv;\n"
+        "        yuv.x = texture(s_texture0, v_texCoord).r;\n"
+        "        yuv.y = texture(s_texture1, v_texCoord).r - 0.5;\n"
+        "        yuv.z = texture(s_texture1, v_texCoord).a - 0.5;\n"
+        "        highp vec3 rgb = mat3(1.0,       1.0,     1.0,\n"
+        "        0.0, \t-0.344, \t1.770,\n"
+        "        1.403,  -0.714,     0.0) * yuv;\n"
+        "        outColor = vec4(rgb, 1.0);\n"
+        "    }\n"
+        "    else if(u_nImgType == 4) //I420\n"
+        "    {\n"
+        "        vec3 yuv;\n"
+        "        yuv.x = texture(s_texture0, v_texCoord).r;\n"
+        "        yuv.y = texture(s_texture1, v_texCoord).r - 0.5;\n"
+        "        yuv.z = texture(s_texture2, v_texCoord).r - 0.5;\n"
+        "        highp vec3 rgb = mat3(1.0,       1.0,     1.0,\n"
+        "                              0.0, \t-0.344, \t1.770,\n"
+        "                              1.403,  -0.714,     0.0) * yuv;\n"
+        "        outColor = vec4(rgb, 1.0);\n"
+        "    }\n"
+        "    else\n"
+        "    {\n"
+        "        outColor = vec4(1.0);\n"
+        "    }\n"
         "}";
-
 GLfloat verticesCoords[] = {
         -1.0f, 1.0f, 0.0f,  // Position 0
         -1.0f, -1.0f, 0.0f,  // Position 1
@@ -53,6 +98,7 @@ OpenGlVideoRender::~OpenGlVideoRender() {
 }
 
 void OpenGlVideoRender::Init(int videoWidth, int videoHeight, int *dstSize) {
+    LOGI("VideoGLRender::InitRender video[w, h]=[%d, %d]", videoWidth, videoHeight);
     m_FrameIndex = 0;
     if(dstSize != nullptr) {
         dstSize[0] = videoWidth;
@@ -62,10 +108,10 @@ void OpenGlVideoRender::Init(int videoWidth, int videoHeight, int *dstSize) {
 }
 
 void OpenGlVideoRender::RenderFrame(NativeImage *image) {
-    METHOD
     if(image == nullptr || image->ppPlane == nullptr){
         return;
     }
+//    METHOD
     std::unique_lock<std::mutex> lock(mutex_);
     //设置要渲染的nativeImage
     if(image->width != renderImage_.width || image->height != renderImage_.height){
@@ -94,14 +140,17 @@ void OpenGlVideoRender::OnSurfaceCreated() {
         return;
     }
 
-    glGenTextures(1, &m_TextureId);
-    glBindTexture(GL_TEXTURE_2D, m_TextureId);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glBindTexture(GL_TEXTURE_2D, GL_NONE);
+    glGenTextures(TEXTURE_NUM, m_TextureIds);
+    for (int i = 0; i < TEXTURE_NUM; ++i) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, m_TextureIds[i]);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glBindTexture(GL_TEXTURE_2D, GL_NONE);
 
+    }
     // Generate VBO Ids and load the VBOs with data
     glGenBuffers(3, m_VboIds);
     glBindBuffer(GL_ARRAY_BUFFER, m_VboIds[0]);
@@ -131,38 +180,71 @@ void OpenGlVideoRender::OnSurfaceCreated() {
 
     glBindVertexArray(GL_NONE);
 
-    UpdateMVPMatrix(0, 0, 1.0f, 1.0f);
+//    UpdateMVPMatrix(0, 0, 1.0f, 1.0f);
 }
 
 void OpenGlVideoRender::OnSurfaceChanged(int width, int height) {
 //    m_ScreenSize.x = w;
 //    m_ScreenSize.y = h;
+//    LOGI("width : %d")
     glViewport(0, 0, width, height);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
 void OpenGlVideoRender::OnDrawFrame() {
-    METHOD
     glClear(GL_COLOR_BUFFER_BIT);
-//    if(m_ProgramObj == GL_NONE || m_TextureId == GL_NONE || m_RenderImage.ppPlane[0] == nullptr) return;
-//    LOGCATE("OpenGLRender::OnDrawFrame [w, h]=[%d, %d]", m_RenderImage.width, m_RenderImage.height);
+//    glClearColor(GL_COLOR_BUFFER_BIT,0f,0f,0f);
+    if(m_ProgramObj == GL_NONE || renderImage_.ppPlane[0] == nullptr){
+        LOGE("render image empty");
+        return;
+    }
     m_FrameIndex++;
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_TextureId);
     std::unique_lock<std::mutex> lock(mutex_);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, renderImage_.width, renderImage_.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, renderImage_.ppPlane[0]);
+    switch (renderImage_.format) {
+        case IMAGE_FORMAT_I420:
+            //分别绘制y,u,v三个plane
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, m_TextureIds[0]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, renderImage_.width,
+                         renderImage_.height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE,
+                         renderImage_.ppPlane[0]);
+            glBindTexture(GL_TEXTURE_2D, GL_NONE);
+
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, m_TextureIds[1]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, renderImage_.width >> 1,
+                         renderImage_.height >> 1, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE,
+                         renderImage_.ppPlane[1]);
+            glBindTexture(GL_TEXTURE_2D, GL_NONE);
+
+            glActiveTexture(GL_TEXTURE2);
+            glBindTexture(GL_TEXTURE_2D, m_TextureIds[2]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, renderImage_.width >> 1,
+                         renderImage_.height >> 1, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE,
+                         renderImage_.ppPlane[2]);
+            glBindTexture(GL_TEXTURE_2D, GL_NONE);
+            break;
+    }
     lock.unlock();
 
-    glBindTexture(GL_TEXTURE_2D, GL_NONE);
     glUseProgram (m_ProgramObj);
     glBindVertexArray(m_VaoId);
 
     gl::setMat4(m_ProgramObj, "u_MVPMatrix", m_MVPMatrix);
 
-    // Bind the RGBA map
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_TextureId);
-    gl::setFloat(m_ProgramObj, "s_TextureMap", 0);
+    for (int i = 0; i < TEXTURE_NUM; ++i) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, m_TextureIds[i]);
+        char samplerName[64] = {0};
+        sprintf(samplerName, "s_texture%d", i);
+        gl::setInt(m_ProgramObj, samplerName, i);
+    }
+
+    float offset = (sin(m_FrameIndex * M_PI / 40) + 1.0f) / 2.0f;
+    gl::setFloat(m_ProgramObj, "u_Offset", offset);
+    gl::setVec2(m_ProgramObj, "u_TexSize", glm::vec2(renderImage_.width, renderImage_.height));
+    gl::setInt(m_ProgramObj, "u_nImgType", renderImage_.format);
+
 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, (const void *)0);
 }

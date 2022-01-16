@@ -19,19 +19,18 @@ public class PlayerRender extends NativeObjectRef implements GLSurfaceView.Rende
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        Log.i(TAG,"onSurfaceCreated");
+//        Log.i(TAG,"onSurfaceCreated");
         nativeOnSurfaceCreated();
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        Log.i(TAG,"onSurfaceChanged");
+//        Log.i(TAG,"onSurfaceChanged");
         nativeonSurfaceChanged(width,height);
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
-        Log.i(TAG,"onDrawFrame");
         nativeonDrawFrame();
     }
 

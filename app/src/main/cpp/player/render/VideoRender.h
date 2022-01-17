@@ -40,4 +40,8 @@ private:
     long m_FrameIndex = 0;
 
     GLuint m_TextureIds[3];
+    int screenWidth_;
+    int screenHeight_;
+    int dstWidth_;
+    int dstHeight_;
 };

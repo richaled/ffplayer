@@ -104,6 +104,8 @@ void OpenGlVideoRender::Init(int videoWidth, int videoHeight, int *dstSize) {
         dstSize[0] = videoWidth;
         dstSize[1] = videoHeight;
     }
+    dstWidth_ = videoWidth;
+    dstHeight_ = videoHeight;
     UpdateMVPMatrix(0, 0, 1.0f, 1.0f);
 }
 
@@ -184,16 +186,16 @@ void OpenGlVideoRender::OnSurfaceCreated() {
 }
 
 void OpenGlVideoRender::OnSurfaceChanged(int width, int height) {
-//    m_ScreenSize.x = w;
-//    m_ScreenSize.y = h;
-//    LOGI("width : %d")
+
+//    LOGI("width : %d,height :%d,screenwidth : %d,screenheight : %d",width,height,screenWidth_,screenHeight_);
+    screenWidth_ = width;
+    screenHeight_ = height;
     glViewport(0, 0, width, height);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
 void OpenGlVideoRender::OnDrawFrame() {
     glClear(GL_COLOR_BUFFER_BIT);
-//    glClearColor(GL_COLOR_BUFFER_BIT,0f,0f,0f);
     if(m_ProgramObj == GL_NONE || renderImage_.ppPlane[0] == nullptr){
         LOGE("render image empty");
         return;
@@ -245,7 +247,6 @@ void OpenGlVideoRender::OnDrawFrame() {
     gl::setVec2(m_ProgramObj, "u_TexSize", glm::vec2(renderImage_.width, renderImage_.height));
     gl::setInt(m_ProgramObj, "u_nImgType", renderImage_.format);
 
-
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, (const void *)0);
 }
 
@@ -257,17 +258,28 @@ void OpenGlVideoRender::UpdateMVPMatrix(int angleX, int angleY, float scaleX, fl
     //转化为弧度角
     float radiansX = static_cast<float>(M_PI / 180.0f * angleX);
     float radiansY = static_cast<float>(M_PI / 180.0f * angleY);
-    glm::mat4 Projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.0f);
+    //计算显示的比例
+    float dstRatio = 1.0f * dstWidth_ / dstHeight_;
+    float screenRatio = 1.0f * screenWidth_ / screenHeight_;
+    float aspectRatio = dstRatio / screenRatio;
+    LOGI("ratio = %f, screenRatio = %f",aspectRatio,screenRatio);
+    glm::mat4 Projection;
+    if(dstWidth_ > dstHeight_){
+        Projection = glm::ortho(-1.0f, 1.0f, -aspectRatio, aspectRatio, 0.1f, 100.0f);
+    }else{
+        Projection = glm::ortho(-aspectRatio, aspectRatio, -1.0f, 1.0f, 0.1f, 100.0f);
+    }
+//    glm::mat4 Projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.0f);
     glm::mat4 View = glm::lookAt(
             glm::vec3(0, 0, 4), // Camera is at (0,0,1), in World Space
             glm::vec3(0, 0, 0), // and looks at the origin
             glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
     );
     glm::mat4 Model = glm::mat4(1.0f);
-    Model = glm::scale(Model, glm::vec3(scaleX, scaleY, 1.0f));
-    Model = glm::rotate(Model, radiansX, glm::vec3(1.0f, 0.0f, 0.0f));
-    Model = glm::rotate(Model, radiansY, glm::vec3(0.0f, 1.0f, 0.0f));
-    Model = glm::translate(Model, glm::vec3(0.0f, 0.0f, 0.0f));
+//    Model = glm::scale(Model, glm::vec3(scaleX, scaleY, 1.0f));
+//    Model = glm::rotate(Model, radiansX, glm::vec3(1.0f, 0.0f, 0.0f));
+//    Model = glm::rotate(Model, radiansY, glm::vec3(0.0f, 1.0f, 0.0f));
+//    Model = glm::translate(Model, glm::vec3(0.0f, 0.0f, 0.0f));
 
     m_MVPMatrix = Projection * View * Model;
 }

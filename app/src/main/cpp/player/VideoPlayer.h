@@ -1,6 +1,8 @@
 #pragma once
 #include "render/VideoRender.h"
 #include "decoder/VideoDecoder.h"
+#include "decoder/AudioDecoder.h"
+
 #include "string"
 #include "IPlayer.h"
 /**
@@ -25,6 +27,7 @@ public:
 
 private:
     std::shared_ptr<VideoDecoder> videoDecoder_;
+    std::shared_ptr<AudioDecoder> audioDecoder_;
 };
 
 

@@ -8,6 +8,7 @@ void VideoPlayer::Init(const std::string &url, const std::shared_ptr<VideoRender
     //创建解码和渲染的对象
     videoDecoder_ = std::make_shared<VideoDecoder>(url);
 //    videoDecoder_.reset(OpenGlVideoRender::GetInstance());
+    audioDecoder_ = std::make_shared<AudioDecoder>();
 
     //解码器设置render
     videoDecoder_->SetRenderer(render);
@@ -28,11 +29,17 @@ void VideoPlayer::Play() {
     if (videoDecoder_){
         videoDecoder_->Start();
     }
+    if(audioDecoder_){
+        audioDecoder_->Start();
+    }
 }
 
 void VideoPlayer::Stop() {
     if(videoDecoder_){
         videoDecoder_->Stop();
+    }
+    if(audioDecoder_){
+        audioDecoder_->Stop();
     }
 }
 

@@ -197,7 +197,7 @@ void OpenGlVideoRender::OnSurfaceChanged(int width, int height) {
 void OpenGlVideoRender::OnDrawFrame() {
     glClear(GL_COLOR_BUFFER_BIT);
     if(m_ProgramObj == GL_NONE || renderImage_.ppPlane[0] == nullptr){
-        LOGE("render image empty");
+        //LOGE("render image empty");
         return;
     }
     m_FrameIndex++;

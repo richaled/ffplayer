@@ -148,7 +148,7 @@ int DecoderBase::DecodeOnePacket() {
             }
             long frameCount = 0;
             while (avcodec_receive_frame(avCodecContext_,avFrame_) == 0){
-                LOGI("receive frame : %ld",avFrame_->pts);
+//                LOGI("receive frame : %ld",avFrame_->pts);
                 //更新时间戳
                 UpdateTimeStamp();
 //                同步

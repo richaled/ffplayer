@@ -22,4 +22,5 @@ target_link_libraries( # Specifies the target library.
         GLESv3
         m
         z
+        OpenSLES
         ${log-lib})

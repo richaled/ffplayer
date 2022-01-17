@@ -7,11 +7,13 @@ VideoPlayer::~VideoPlayer() {
 void VideoPlayer::Init(const std::string &url, const std::shared_ptr<VideoRender> &render) {
     //创建解码和渲染的对象
     videoDecoder_ = std::make_shared<VideoDecoder>(url);
-//    videoDecoder_.reset(OpenGlVideoRender::GetInstance());
-    audioDecoder_ = std::make_shared<AudioDecoder>();
+    audioDecoder_ = std::make_shared<AudioDecoder>(url);
 
+    auto audioRender = std::make_shared<AudioRender>();
     //解码器设置render
     videoDecoder_->SetRenderer(render);
+    audioDecoder_->SetRender(audioRender);
+
 }
 
 void VideoPlayer::UnInit() {
@@ -59,14 +61,3 @@ float VideoPlayer::GetDuration() {
     return videoDecoder_->GetDuration();
 }
 
-//void VideoPlayer::OnSurfaceCreated() {
-//    videoRender_->OnSurfaceCreated();
-//}
-//
-//void VideoPlayer::OnSurfaceChanged(int width, int height) {
-//    videoRender_->OnSurfaceChanged(width,height);
-//}
-//
-//void VideoPlayer::OnDrawFrame() {
-//    videoRender_->OnDrawFrame();
-//}

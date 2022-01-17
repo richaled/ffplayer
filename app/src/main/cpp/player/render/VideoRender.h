@@ -18,9 +18,9 @@ public:
     void RenderFrame(NativeImage *nativeImage) override ;
     void UnInit() override ;
 
-    void OnSurfaceCreated();
-    void OnSurfaceChanged(int width, int height);
-    void OnDrawFrame();
+    void OnSurfaceCreated() override ;
+    void OnSurfaceChanged(int width, int height) override ;
+    void OnDrawFrame() override ;
 
     void UpdateMVPMatrix(int angleX, int angleY, float scaleX, float scaleY);
 

@@ -75,7 +75,7 @@ void AudioRender::Init() {
         return;
     }
     //声音控制
-    result = (*playerObject)->GetInterface(playerObject,SL_IID_PLAY,&playVolume);
+    result = (*playerObject)->GetInterface(playerObject,SL_IID_VOLUME,&playVolume);
     if(result != SL_RESULT_SUCCESS){
         LOGE("OpenSLRender::Volume GetInterface fail. result=%d", result);
         return;

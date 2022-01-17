@@ -188,7 +188,7 @@ long DecoderBase::AVSync() {
     //回调
 
     long delay = 0;
-    if(curSysTime > elapsedTime){
+    if(currentTimeStamp > elapsedTime){
         auto sleepTime = static_cast<unsigned int>(currentTimeStamp - elapsedTime);//ms}
         sleepTime = sleepTime > DELAY_THRESHOLD ? DELAY_THRESHOLD : sleepTime;
         av_usleep(sleepTime * 1000);

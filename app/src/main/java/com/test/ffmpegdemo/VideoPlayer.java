@@ -60,6 +60,15 @@ public class VideoPlayer extends NativeObjectRef {
         nativePause();
     }
 
+    public void seekTo(float time){
+        nativeSeekTo(time);
+    }
+
+    public float getDuration(){
+        return nativeGetDuration();
+    }
+
+
     public void stop(){
         nativeStop();
     }
@@ -88,6 +97,9 @@ public class VideoPlayer extends NativeObjectRef {
     private native void nativePause();
     private native void nativeStop();
     private native void nativeRelease();
+    private native void nativeSeekTo(float time);
+    private native float nativeGetDuration();
+
 
     public interface OnPlayerStateCallback{
         void onPLayState();

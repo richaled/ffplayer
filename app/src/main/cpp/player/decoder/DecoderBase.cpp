@@ -28,11 +28,15 @@ void DecoderBase::Pause() {
 }
 
 void DecoderBase::SeekTo(float position) {
+    std::unique_lock<std::mutex> lock(mutex_);
+    decoderState_ = DecoderState::STATE_DECODING;
+    seekPosition_ = position;
+    conditionVariable_.notify_all();
 
 }
 
 float DecoderBase::GetDuration() {
-    return 0;
+    return duration_;
 }
 
 void DecoderBase::StartDecodingThread() {
@@ -96,6 +100,8 @@ int DecoderBase::InitFFDecoder() {
     LOGI("codec open success");
     //获取视频的时长
     duration_ = avFormatContext_->duration / AV_TIME_BASE * 1000;
+    avPacket_ = av_packet_alloc();
+    avFrame_ = av_frame_alloc();
     return result;
 }
 
@@ -110,6 +116,14 @@ void DecoderBase::UnInitDecoder() {
         avcodec_close(avCodecContext_);
         avcodec_free_context(&avCodecContext_);
         avCodecContext_ = nullptr;
+    }
+    if(avPacket_){
+        av_packet_free(&avPacket_);
+        avPacket_ = nullptr;
+    }
+    if(avFrame_){
+        av_frame_free(&avFrame_);
+        avFrame_ = nullptr;
     }
 }
 
@@ -141,12 +155,26 @@ void DecoderBase::DecodingLoop() {
 }
 
 int DecoderBase::DecodeOnePacket() {
-    AVPacket *avPacket = av_packet_alloc();
-    avFrame_ = av_frame_alloc();
-    int result = av_read_frame(avFormatContext_,avPacket);
+    if (seekPosition_ > 0){
+        //转换成微秒
+        int64_t seekTarget = seekPosition_ * 1000;
+        int64_t seekMin = INT64_MIN;
+        int64_t seekMax = INT64_MAX;
+        int seekRet = avformat_seek_file(avFormatContext_,-1,seekMin,seekTarget,seekMax,AVSEEK_FLAG_ANY);
+        if(seekRet < 0){
+            seekSuccess_ = false;
+        }else{
+            if(streamIndex_ != -1){
+                avcodec_flush_buffers(avCodecContext_);
+            }
+            seekSuccess_ = true;
+        }
+    }
+
+    int result = av_read_frame(avFormatContext_,avPacket_);
     while (result == 0){
-        if(avPacket->stream_index == streamIndex_){
-            if(avcodec_send_packet(avCodecContext_,avPacket) == AVERROR_EOF){
+        if(avPacket_->stream_index == streamIndex_){
+            if(avcodec_send_packet(avCodecContext_,avPacket_) == AVERROR_EOF){
                 result = -1;
                 goto FINISH;
             }
@@ -166,11 +194,11 @@ int DecoderBase::DecodeOnePacket() {
                 goto FINISH;
             }
         }
-        av_packet_unref(avPacket);
-        result = av_read_frame(avFormatContext_,avPacket);
+        av_packet_unref(avPacket_);
+        result = av_read_frame(avFormatContext_,avPacket_);
     }
     FINISH:
-    av_packet_unref(avPacket);
+    av_packet_unref(avPacket_);
     return result;
 }
 
@@ -184,6 +212,11 @@ void DecoderBase::UpdateTimeStamp() {
         currentTimeStamp = 0;
     }
     currentTimeStamp = currentTimeStamp * av_q2d(avFormatContext_->streams[streamIndex_]->time_base) * 1000;
+    if(seekPosition_ > 0 && seekSuccess_){
+        m_StartTimeStamp = GetSysCurrentTime() - currentTimeStamp;
+        seekPosition_ = 0;
+        seekSuccess_ = false;
+    }
 }
 
 long DecoderBase::AVSync() {

@@ -51,6 +51,28 @@ Java_com_test_ffmpegdemo_VideoPlayer_nativeStop(JNIEnv *env, jobject thiz) {
     player->Stop();
 }
 
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_test_ffmpegdemo_VideoPlayer_nativeSeekTo(JNIEnv *env, jobject thiz, jfloat time) {
+    std::shared_ptr<VideoPlayer> player = JniUtils::CopyRefGet<VideoPlayer>(
+            env, thiz, kPlayer);
+    if(player){
+        player->SeekTo(time);
+    }
+}
+
+extern "C"
+JNIEXPORT jfloat JNICALL
+Java_com_test_ffmpegdemo_VideoPlayer_nativeGetDuration(JNIEnv *env, jobject thiz) {
+    std::shared_ptr<VideoPlayer> player = JniUtils::CopyRefGet<VideoPlayer>(
+            env, thiz, kPlayer);
+    if(player){
+        return player->GetDuration();
+    }
+    return -1;
+}
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_test_ffmpegdemo_VideoPlayer_nativeRelease(JNIEnv *env, jobject thiz) {

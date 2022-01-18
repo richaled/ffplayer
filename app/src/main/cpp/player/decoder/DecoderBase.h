@@ -78,8 +78,12 @@ protected:
     long m_StartTimeStamp = -1;
     long currentTimeStamp = -1;
     AVFrame *avFrame_;
+    AVPacket *avPacket_;
 
     long duration_;
+
+    float seekPosition_;
+    bool seekSuccess_ = false;
 };
 
 

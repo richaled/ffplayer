@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.SeekBar;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,13 +17,14 @@ import com.mylhyl.acp.AcpOptions;
 import java.io.File;
 import java.util.List;
 
-public class GlPlayerActivity extends AppCompatActivity implements View.OnClickListener, AcpListener {
+public class GlPlayerActivity extends AppCompatActivity implements View.OnClickListener, AcpListener, SeekBar.OnSeekBarChangeListener {
 
     private static final String TAG = GlPlayerActivity.class.getName();
     private String url = "/sdcard/DCIM/one_piece.mp4";
     private PlayerView mPlayerView;
     private boolean isPlaying = false;
     private Button mPlayBtn;
+    private SeekBar mSeekBar;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,8 +32,10 @@ public class GlPlayerActivity extends AppCompatActivity implements View.OnClickL
         setContentView(R.layout.activity_player);
 
         mPlayerView = findViewById(R.id.player_view);
+        mSeekBar = findViewById(R.id.seek_bar);
         mPlayBtn = findViewById(R.id.play_btn);
         mPlayBtn.setOnClickListener(this);
+        mSeekBar.setOnSeekBarChangeListener(this);
         requestPremission();
     }
 
@@ -87,6 +91,28 @@ public class GlPlayerActivity extends AppCompatActivity implements View.OnClickL
 
     @Override
     public void onDenied(List<String> permissions) {
+
+    }
+
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+        if(fromUser){
+            if(mPlayerView.isPrepare()){
+                float duration = mPlayerView.getDuration();
+                float v = 1.0f * progress / 100 * duration;
+                Log.i(TAG,"v : " + v + ",duration : " + duration);
+                mPlayerView.seek(v);
+            }
+        }
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
 
     }
 }

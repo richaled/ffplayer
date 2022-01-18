@@ -49,18 +49,9 @@ public class PlayerView extends FrameLayout {
         }else{
             Log.i(TAG,"not support gles3");
         }
-//        glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         this.addView(glSurfaceView);
 
         videoPlayer = new VideoPlayer(context,glSurfaceView);
-    }
-
-    private void setLayoutParams(View view){
-//        MarginLayoutParams margin = new MarginLayoutParams(view.getLayoutParams());
-//        FrameLayout.LayoutParams layoutParams = view.getLayoutParams();//new FrameLayout.LayoutParams(margin);
-//        layoutParams.width = 1000 ;
-//        layoutParams.height = 800 ;
-//        view.setLayoutParams(layoutParams);
     }
 
     public int prepare(String url){
@@ -85,6 +76,14 @@ public class PlayerView extends FrameLayout {
 
     public boolean isPrepare(){
         return videoPlayer.isPrepare();
+    }
+
+    public void seek(float time){
+        videoPlayer.seekTo(time);
+    }
+
+    public float getDuration(){
+        return videoPlayer.getDuration();
     }
 
 }

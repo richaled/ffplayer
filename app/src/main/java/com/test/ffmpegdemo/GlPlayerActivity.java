@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,6 +16,7 @@ import com.mylhyl.acp.AcpListener;
 import com.mylhyl.acp.AcpOptions;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class GlPlayerActivity extends AppCompatActivity implements View.OnClickListener, AcpListener, SeekBar.OnSeekBarChangeListener, VideoPlayer.OnPlayProgressCallback, VideoPlayer.OnPlayerStateCallback {
@@ -25,6 +27,7 @@ public class GlPlayerActivity extends AppCompatActivity implements View.OnClickL
     private boolean isPlaying = false;
     private Button mPlayBtn;
     private SeekBar mSeekBar;
+    private TextView mProgressText;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,6 +37,7 @@ public class GlPlayerActivity extends AppCompatActivity implements View.OnClickL
         mPlayerView = findViewById(R.id.player_view);
         mSeekBar = findViewById(R.id.seek_bar);
         mPlayBtn = findViewById(R.id.play_btn);
+        mProgressText = findViewById(R.id.play_progress);
         mPlayBtn.setOnClickListener(this);
         mSeekBar.setOnSeekBarChangeListener(this);
         mPlayerView.setPlayProgressCallback(this);
@@ -123,6 +127,8 @@ public class GlPlayerActivity extends AppCompatActivity implements View.OnClickL
 
         runOnUiThread(() -> {
             mSeekBar.setProgress((int) (progress/ total * 100));
+            String time = getTime(progress) + "/" + getTime(total);
+            mProgressText.setText(time);
         });
     }
 
@@ -130,9 +136,31 @@ public class GlPlayerActivity extends AppCompatActivity implements View.OnClickL
     public void onPlayState(int state) {
         Log.i(TAG,"play state : " + state);
         switch (state){
-            case VideoPlayer.PlayState.READY:
-
+            case VideoPlayer.PlayState.READY:{
                 break;
+            }
+            case VideoPlayer.PlayState.DONE:{
+                runOnUiThread(()->{
+                    mSeekBar.setProgress(0);
+                    mProgressText.setText("00:00/00:00");
+                });
+                break;
+            }
+
         }
+    }
+
+
+    public static String getTime(float millSeconds) {
+        SimpleDateFormat format = new SimpleDateFormat("mm:ss");
+        return format.format(millSeconds);
+//        int seconds = (int) (millSeconds / 1000);
+//        int h = seconds / 3600;
+//        int m = (seconds % 3600) / 60;
+//        int s = (seconds % 3600) % 60;
+//        if(h > 0){
+//            return h + "." + m + ":" + s;
+//        }
+//        return m + ":" + s;
     }
 }

@@ -26,6 +26,13 @@ public:
 
     float GetDuration() override;
 
+    void SetStateCallback(const StateCallback &stateCallback){
+        stateCallback_ = stateCallback;
+    }
+    void SetProgressCallback(const ProgressCallback &progressCallback){
+        progressCallback_ = progressCallback;
+    }
+
 protected:
     virtual void OnDecoderReady() = 0;
     virtual void OnDecoderDone() = 0;
@@ -80,10 +87,13 @@ protected:
     AVFrame *avFrame_;
     AVPacket *avPacket_;
 
-    long duration_;
+    float duration_;
 
     float seekPosition_;
     bool seekSuccess_ = false;
+
+    StateCallback stateCallback_;
+    ProgressCallback progressCallback_;
 };
 
 

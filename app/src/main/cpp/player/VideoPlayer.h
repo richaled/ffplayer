@@ -21,13 +21,15 @@ public:
     void Stop()  override;
     void SeekTo(float position) override ;
     float GetDuration() override;
-//    void OnSurfaceCreated() override ;
-//    void OnSurfaceChanged(int width, int height) override ;
-//    void OnDrawFrame() override ;
+
+    void SetStateCallback(const StateCallback &stateCallback);
+    void SetProgressCallback(const ProgressCallback &progressCallback);
 
 private:
     std::shared_ptr<VideoDecoder> videoDecoder_;
     std::shared_ptr<AudioDecoder> audioDecoder_;
+    StateCallback stateCallback_;
+    ProgressCallback progressCallback_;
 };
 
 

@@ -21,13 +21,15 @@ public class VideoPlayer extends NativeObjectRef {
     private Context mContext;
     private boolean mIsPrepare = false;
     private boolean mIsRelease = false;
+    private OnPlayerStateCallback mPlayerStateCallback;
+    private OnPlayProgressCallback mPlayProgressCallback;
 
     public VideoPlayer(Context context,GLSurfaceView glSurfaceView){
         this(nativeCreateVideoPlayer());
+        nativeSetCallback();
         this.mContext = context;
         playerRender = new PlayerRender();
         glSurfaceView.setRenderer(playerRender);
-
     }
 
     private VideoPlayer(long wrapPtr) {
@@ -87,8 +89,25 @@ public class VideoPlayer extends NativeObjectRef {
         super.finalize();
     }
 
-    public interface IPlayerStatusCallback{
+    public void setPlayerStateCallback(OnPlayerStateCallback mPlayerStateCallback) {
+        this.mPlayerStateCallback = mPlayerStateCallback;
+    }
 
+    public void setPlayProgressCallback(OnPlayProgressCallback mPlayProgressCallback) {
+        this.mPlayProgressCallback = mPlayProgressCallback;
+    }
+
+    //jni callback method
+    private void onStateChange(int state){
+        if(mPlayerStateCallback != null){
+            mPlayerStateCallback.onPlayState(state);
+        }
+    }
+
+    private void onProgress(float progress, float total){
+        if(mPlayProgressCallback != null){
+            mPlayProgressCallback.onPlayProgress(progress, total);
+        }
     }
 
     private static native long nativeCreateVideoPlayer();
@@ -99,13 +118,21 @@ public class VideoPlayer extends NativeObjectRef {
     private native void nativeRelease();
     private native void nativeSeekTo(float time);
     private native float nativeGetDuration();
-
+    private native void nativeSetCallback();
 
     public interface OnPlayerStateCallback{
-        void onPLayState();
+        void onPlayState(int state);
     }
 
     public interface OnPlayProgressCallback{
         void onPlayProgress(float progress, float total);
+    }
+
+    public static class PlayState{
+        public static final int SUCCESS = 0;
+        public static final int INIT_ERROR = 1;
+        public static final int READY = 2;
+        public static final int DONE = 3;
+
     }
 }

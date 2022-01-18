@@ -17,6 +17,7 @@ enum DecoderState {
 };
 
 enum DecoderMsg {
+    MSG_SUCCESS = 0,
     MSG_DECODER_INIT_ERROR = 1,
     MSG_DECODER_READY,
     MSG_DECODER_DONE,
@@ -24,7 +25,8 @@ enum DecoderMsg {
     MSG_DECODING_TIME
 };
 
-using FinishCallback = std::function<void(const int status, const float progress)>;
+using StateCallback = std::function<void(const int status)>;
+using ProgressCallback = std::function<void(const float progress, const float total)>;
 class Decoder{
 public:
 //    Decoder(){};

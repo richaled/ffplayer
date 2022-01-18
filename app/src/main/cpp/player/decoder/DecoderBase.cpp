@@ -3,7 +3,10 @@
 
 
 DecoderBase::~DecoderBase() {
-
+    std::unique_lock<std::mutex> lock(mutex_);
+    if(thread_.joinable()){
+        thread_.join();
+    }
 }
 
 void DecoderBase::Start() {
@@ -41,24 +44,26 @@ float DecoderBase::GetDuration() {
 
 void DecoderBase::StartDecodingThread() {
     auto loop_func = [&]() {
-        if (InitFFDecoder() != 0){
+        int ret = DecoderMsg::MSG_SUCCESS;
+        if ((ret = InitFFDecoder()) != DecoderMsg::MSG_SUCCESS){
             //callback todo
-
+            stateCallback_(ret);
             return;
         }
         OnDecoderReady();
+        stateCallback_(DecoderMsg::MSG_DECODER_READY);
         //音视频解码循环
         DecodingLoop();
         UnInitDecoder();
         OnDecoderDone();
-
+        stateCallback_(DecoderMsg::MSG_DECODER_DONE);
     };
     thread_ = std::thread(loop_func);
 }
 
 int DecoderBase::InitFFDecoder() {
     avFormatContext_ = avformat_alloc_context();
-    int result = 0;
+    int result = DecoderMsg::MSG_SUCCESS;
     if((result = avformat_open_input(&avFormatContext_,url_.c_str(), nullptr, nullptr)) != 0){
         LOGE("input open fail : %d" ,result);
         return static_cast<int >(DecoderMsg::MSG_DECODER_INIT_ERROR);
@@ -139,7 +144,6 @@ void DecoderBase::DecodingLoop() {
             //等待
             std::unique_lock<std::mutex> lock(mutex_);
             conditionVariable_.wait_for(lock, std::chrono::milliseconds(10));
-            //获取
         }
         if(decoderState_ == DecoderState::STATE_STOP){
             break;
@@ -183,6 +187,7 @@ int DecoderBase::DecodeOnePacket() {
 //                LOGI("receive frame : %ld",avFrame_->pts);
                 //更新时间戳
                 UpdateTimeStamp();
+
 //                同步
                 AVSync();
                 //渲染
@@ -223,6 +228,9 @@ long DecoderBase::AVSync() {
     long curSysTime = GetSysCurrentTime();
     long elapsedTime = curSysTime - m_StartTimeStamp;
     //回调
+    if(progressCallback_ && mediaType_ == AVMEDIA_TYPE_AUDIO){
+        progressCallback_(currentTimeStamp,duration_);
+    }
 
     long delay = 0;
     if(currentTimeStamp > elapsedTime){

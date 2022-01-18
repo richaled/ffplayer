@@ -86,4 +86,12 @@ public class PlayerView extends FrameLayout {
         return videoPlayer.getDuration();
     }
 
+    public void setPlayStateCallback(VideoPlayer.OnPlayerStateCallback onPlayerStateCallback){
+        videoPlayer.setPlayerStateCallback(onPlayerStateCallback);
+    }
+
+    public void setPlayProgressCallback(VideoPlayer.OnPlayProgressCallback playProgressCallback){
+        videoPlayer.setPlayProgressCallback(playProgressCallback);
+    }
+
 }

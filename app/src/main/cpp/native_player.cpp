@@ -7,12 +7,35 @@
 using namespace learn;
 
 
+
 extern "C"
 JNIEXPORT jlong JNICALL
 Java_com_test_ffmpegdemo_VideoPlayer_nativeCreateVideoPlayer(JNIEnv *env, jclass clazz) {
     std::shared_ptr<VideoPlayer> player = std::shared_ptr<VideoPlayer>(
             new VideoPlayer());
     return JniUtils::NewRefWrapJlong(player, kPlayer);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_test_ffmpegdemo_VideoPlayer_nativeSetCallback(JNIEnv *env, jobject thiz) {
+    std::shared_ptr<VideoPlayer> player = JniUtils::CopyRefGet<VideoPlayer>(
+            env, thiz, kPlayer);
+    auto globalRef = JniUtils::LocalRawObjectToGlobalRefObject(thiz, env);
+    player->SetStateCallback([globalRef](const int state){
+        JNIEnv *env = JniUtils::AttachThreadLocalEnv();
+        jobject javaObj = globalRef.get();
+        jmethodID mid = env->GetMethodID(env->GetObjectClass(javaObj), "onStateChange", "(I)V");
+        env->CallVoidMethod(javaObj, mid, state);
+
+    });
+    player->SetProgressCallback([globalRef](const float progress, const float total){
+        JNIEnv *env = JniUtils::AttachThreadLocalEnv();
+        jobject javaObj = globalRef.get();
+        jmethodID mid = env->GetMethodID(env->GetObjectClass(javaObj), "onProgress", "(FF)V");
+        env->CallVoidMethod(javaObj, mid, progress,total);
+    });
+
 }
 
 extern "C"

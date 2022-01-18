@@ -13,7 +13,14 @@ void VideoPlayer::Init(const std::string &url, const std::shared_ptr<VideoRender
     //解码器设置render
     videoDecoder_->SetRenderer(render);
     audioDecoder_->SetRender(audioRender);
-
+    if(stateCallback_){
+        videoDecoder_->SetStateCallback(stateCallback_);
+        audioDecoder_->SetStateCallback(stateCallback_);
+    }
+    if(progressCallback_){
+        videoDecoder_->SetProgressCallback(progressCallback_);
+        audioDecoder_->SetProgressCallback(progressCallback_);
+    }
 }
 
 void VideoPlayer::UnInit() {
@@ -67,3 +74,22 @@ float VideoPlayer::GetDuration() {
     return videoDecoder_->GetDuration();
 }
 
+void VideoPlayer::SetStateCallback(const StateCallback &stateCallback) {
+    if(videoDecoder_){
+        videoDecoder_->SetStateCallback(stateCallback);
+    }
+    if(audioDecoder_){
+        audioDecoder_->SetStateCallback(stateCallback);
+    }
+    stateCallback_ = stateCallback;
+}
+
+void VideoPlayer::SetProgressCallback(const ProgressCallback &progressCallback) {
+    if(videoDecoder_){
+        videoDecoder_->SetProgressCallback(progressCallback);
+    }
+    if(audioDecoder_){
+        audioDecoder_->SetProgressCallback(progressCallback);
+    }
+    progressCallback_ = progressCallback;
+}

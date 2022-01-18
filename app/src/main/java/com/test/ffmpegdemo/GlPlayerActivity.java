@@ -17,7 +17,7 @@ import com.mylhyl.acp.AcpOptions;
 import java.io.File;
 import java.util.List;
 
-public class GlPlayerActivity extends AppCompatActivity implements View.OnClickListener, AcpListener, SeekBar.OnSeekBarChangeListener {
+public class GlPlayerActivity extends AppCompatActivity implements View.OnClickListener, AcpListener, SeekBar.OnSeekBarChangeListener, VideoPlayer.OnPlayProgressCallback, VideoPlayer.OnPlayerStateCallback {
 
     private static final String TAG = GlPlayerActivity.class.getName();
     private String url = "/sdcard/DCIM/one_piece.mp4";
@@ -36,6 +36,8 @@ public class GlPlayerActivity extends AppCompatActivity implements View.OnClickL
         mPlayBtn = findViewById(R.id.play_btn);
         mPlayBtn.setOnClickListener(this);
         mSeekBar.setOnSeekBarChangeListener(this);
+        mPlayerView.setPlayProgressCallback(this);
+        mPlayerView.setPlayStateCallback(this);
         requestPremission();
     }
 
@@ -100,7 +102,6 @@ public class GlPlayerActivity extends AppCompatActivity implements View.OnClickL
             if(mPlayerView.isPrepare()){
                 float duration = mPlayerView.getDuration();
                 float v = 1.0f * progress / 100 * duration;
-                Log.i(TAG,"v : " + v + ",duration : " + duration);
                 mPlayerView.seek(v);
             }
         }
@@ -114,5 +115,24 @@ public class GlPlayerActivity extends AppCompatActivity implements View.OnClickL
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
 
+    }
+
+    @Override
+    public void onPlayProgress(float progress, float total) {
+        Log.i(TAG,"play progress : " + progress + ",total : " + total);
+
+        runOnUiThread(() -> {
+            mSeekBar.setProgress((int) (progress/ total * 100));
+        });
+    }
+
+    @Override
+    public void onPlayState(int state) {
+        Log.i(TAG,"play state : " + state);
+        switch (state){
+            case VideoPlayer.PlayState.READY:
+
+                break;
+        }
     }
 }

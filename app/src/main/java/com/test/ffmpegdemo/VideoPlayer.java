@@ -45,8 +45,12 @@ public class VideoPlayer extends NativeObjectRef {
     }
 
     public int prepare(String url){
+        if(mIsPrepare){
+            Log.i(TAG,"aready prepared !");
+            return PlayState.SUCCESS;
+        }
         int ret = nativePrepare(url,playerRender);
-        mIsPrepare = ret == 0;
+        mIsPrepare = ret == PlayState.SUCCESS;
         return ret;
     }
 

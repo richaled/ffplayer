@@ -79,7 +79,7 @@ protected:
     std::mutex mutex_;
     std::condition_variable conditionVariable_;
 
-    DecoderState decoderState_;
+    DecoderState decoderState_ = DecoderState::STATE_UNKNOWN;
 
     //播放的起始时间
     long m_StartTimeStamp = -1;

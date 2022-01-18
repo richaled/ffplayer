@@ -3,6 +3,7 @@ project("ffmpegdemo")
 
 add_subdirectory(ffmpeg)
 add_subdirectory(glm)
+add_subdirectory(libev)
 add_subdirectory(jniutils)
 add_subdirectory(player)
 
@@ -42,5 +43,6 @@ target_link_libraries( # Specifies the target library.
         PRIVATE
         ${FFmpeg}
         glm
-        JniUtil)
+        JniUtil
+        ev)
 

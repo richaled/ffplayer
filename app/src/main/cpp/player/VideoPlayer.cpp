@@ -49,11 +49,17 @@ void VideoPlayer::Pause() {
     if(videoDecoder_){
         videoDecoder_->Pause();
     }
+    if(audioDecoder_){
+        audioDecoder_->Pause();
+    }
 }
 
 void VideoPlayer::SeekTo(float position) {
     if(videoDecoder_){
         videoDecoder_->SeekTo(position);
+    }
+    if(audioDecoder_){
+        audioDecoder_->SeekTo(position);
     }
 }
 

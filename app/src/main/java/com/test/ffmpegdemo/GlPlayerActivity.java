@@ -4,6 +4,7 @@ import android.Manifest;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,6 +21,8 @@ public class GlPlayerActivity extends AppCompatActivity implements View.OnClickL
     private static final String TAG = GlPlayerActivity.class.getName();
     private String url = "/sdcard/DCIM/one_piece.mp4";
     private PlayerView mPlayerView;
+    private boolean isPlaying = false;
+    private Button mPlayBtn;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -27,7 +30,8 @@ public class GlPlayerActivity extends AppCompatActivity implements View.OnClickL
         setContentView(R.layout.activity_player);
 
         mPlayerView = findViewById(R.id.player_view);
-        findViewById(R.id.play_btn).setOnClickListener(this);
+        mPlayBtn = findViewById(R.id.play_btn);
+        mPlayBtn.setOnClickListener(this);
         requestPremission();
     }
 
@@ -57,13 +61,23 @@ public class GlPlayerActivity extends AppCompatActivity implements View.OnClickL
         boolean exists = file.exists();
         Log.i(TAG,"exists : " + exists);
 
-        int prepare = mPlayerView.prepare(url);
-        if(prepare != 0){
-            Log.i(TAG,"video player prepare fail :" + prepare);
-            return;
+        if(isPlaying){
+            mPlayerView.pause();
+            mPlayBtn.setText("播放");
+        }else {
+            if (!mPlayerView.isPrepare()){
+                int prepare = mPlayerView.prepare(url);
+                if(prepare != 0){
+                    Log.i(TAG,"video player prepare fail :" + prepare);
+                    return;
+                }
+                Log.i(TAG,"prepare init success");
+            }
+
+            mPlayerView.play();
+            mPlayBtn.setText("暂停");
         }
-        Log.i(TAG,"prepare init success");
-        mPlayerView.play();
+        isPlaying = !isPlaying;
     }
 
     @Override

@@ -83,4 +83,8 @@ public class PlayerView extends FrameLayout {
         videoPlayer.release();
     }
 
+    public boolean isPrepare(){
+        return videoPlayer.isPrepare();
+    }
+
 }

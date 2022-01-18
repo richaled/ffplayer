@@ -7,7 +7,13 @@ DecoderBase::~DecoderBase() {
 }
 
 void DecoderBase::Start() {
-    StartDecodingThread();
+    LOGI("decode state : %d", static_cast<int >(decoderState_));
+    if(decoderState_ == DecoderState::STATE_PAUSE){
+        decoderState_ = DecoderState::STATE_DECODING;
+        conditionVariable_.notify_all();
+    } else{
+        StartDecodingThread();
+    }
 }
 
 void DecoderBase::Stop() {
@@ -90,7 +96,6 @@ int DecoderBase::InitFFDecoder() {
     LOGI("codec open success");
     //获取视频的时长
     duration_ = avFormatContext_->duration / AV_TIME_BASE * 1000;
-
     return result;
 }
 
@@ -115,7 +120,6 @@ void DecoderBase::DecodingLoop() {
         decoderState_ = DecoderState::STATE_DECODING;
         lock.unlock();
     }
-
     for (;;) {
         while (decoderState_ == DecoderState::STATE_PAUSE){
             //等待

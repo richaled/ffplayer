@@ -10,7 +10,7 @@ extern "C" {
 }
 
 enum DecoderState {
-    STATE_UNKNOWN,
+    STATE_UNKNOWN = 0,
     STATE_DECODING,
     STATE_PAUSE,
     STATE_STOP

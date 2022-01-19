@@ -66,12 +66,12 @@ void AudioRender::Init() {
     }
     result = (*playerObject)->Realize(playerObject,SL_BOOLEAN_FALSE);
     if(result != SL_RESULT_SUCCESS){
-        LOGE("OpenSLRender::Player Realize fail. result=%d", result);
+        LOGE("OpenSLRender::player Realize fail. result=%d", result);
         return;
     }
     result = (*playerObject)->GetInterface(playerObject,SL_IID_PLAY,&playItf);
     if(result != SL_RESULT_SUCCESS){
-        LOGE("OpenSLRender::Player GetInterface fail. result=%d", result);
+        LOGE("OpenSLRender::player GetInterface fail. result=%d", result);
         return;
     }
     //声音控制

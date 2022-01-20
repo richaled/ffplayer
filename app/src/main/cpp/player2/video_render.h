@@ -1,14 +1,11 @@
-//
-// Created by HFY on 2022/1/20.
-//
+#pragma once
 
-#ifndef FFMPEGDEMO_VIDEO_RENDER_H
-#define FFMPEGDEMO_VIDEO_RENDER_H
-
-
-class video_render {
-
-};
+namespace player{
+    class VideoRender{
+    public:
+        VideoRender();
+    private:
+    };
+}
 
 
-#endif //FFMPEGDEMO_VIDEO_RENDER_H

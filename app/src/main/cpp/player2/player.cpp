@@ -1,6 +1,7 @@
 #include <log/log.h>
 #include <vector>
 #include "player.h"
+#include "play_impl.h"
 
 namespace player{
 
@@ -21,6 +22,7 @@ namespace player{
         if(playerState_ >= PlayerState::kStart){
             return;
         }
+
         mediaInfo_ = mediaInfo;
         NewEvent(kPlayerPrepare,shared_from_this(),dispatcher_)
                 ->Post();
@@ -40,8 +42,16 @@ namespace player{
     void Player::OnPrepare(const std::shared_ptr<Event> &event) {
         LOGI("clip size : %d",mediaInfo_.clips.size());
 
-        //初始化opengl环境，初始化，开启解码线程
-        int ret = InitRender();
+        //初始化render，开启解码线程
+//        int ret = InitRender();
+        if(!playImpl_){
+            playImpl_ = std::make_shared<PlayImpl>();
+        }
+        playImpl_->Init(mediaInfo_.clips[0].file_name);
+    }
 
+    int Player::InitRender() {
+        videoRender_ = std::make_shared<VideoRender>();
+        return 0;
     }
 }

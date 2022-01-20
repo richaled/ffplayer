@@ -7,6 +7,8 @@
 #include <eventloop/event_dispatcher.h>
 #include "eventloop/event_handler.h"
 #include "media_base.h"
+#include "video_render.h"
+#include "play_impl.h"
 
 using namespace test;
 namespace player {
@@ -68,6 +70,8 @@ namespace player {
 
         bool isPrepare_ = false;
         MediaInfo mediaInfo_;
+        std::shared_ptr<VideoRender> videoRender_;
+        std::shared_ptr<PlayImpl> playImpl_;
     };
 
 }

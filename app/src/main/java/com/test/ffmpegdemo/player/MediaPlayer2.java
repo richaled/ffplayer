@@ -22,8 +22,17 @@ public class MediaPlayer2 extends NativeObjectRef {
         return nativeIsPrepare();
     }
 
-
+    /**
+     * 从头开始播放
+     */
     public void play(){
+
+    }
+
+    /**
+     * 播放指定片段的区间
+     */
+    public void playRange(){
 
     }
 

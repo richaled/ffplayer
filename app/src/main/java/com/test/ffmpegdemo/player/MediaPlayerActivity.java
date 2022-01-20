@@ -24,7 +24,14 @@ public class MediaPlayerActivity extends AppCompatActivity implements View.OnCli
         switch (v.getId()){
             case R.id.test_btn:{
                 MediaPlayer2 mediaPlayer2 = new MediaPlayer2();
-                mediaPlayer2.start();
+
+                MediaClip[] mediaClips = new MediaClip[1];
+                MediaClip mediaClip = new MediaClip();
+                mediaClip.path = "xxxxx";
+                mediaClip.timeRange = new MediaClip.TimeRange(0,40);
+                mediaClip.type = 1;
+                mediaClips[0] = mediaClip;
+                mediaPlayer2.prepare(mediaClips);
                 break;
             }
         }

@@ -22,6 +22,7 @@ namespace test {
         }
 
         ~Event() {
+            data_.clear();
         }
 
         /**
@@ -36,14 +37,18 @@ namespace test {
         /**
          * 获取数据
          */
-        template<typename T>
-        bool GetData(const std::string &key, T &&val){
-            auto iterator = data_.find(key);
-            if(iterator == data_.end()){
+        template <typename T>
+        bool GetDataCopy(const std::string& key, T &val) const noexcept(false) {
+            auto itr = data_.find(key);
+            if (itr == data_.end()) {
                 return false;
             }
-            val = any_cast<const T&>(iterator->second);
-            return false;
+            val = any_cast<const T&>(itr->second);
+            return true;
+        }
+
+        void ClearData() noexcept {
+            data_.clear();
         }
 
         std::shared_ptr<Event> SetHandler(const std::shared_ptr<EventHandler> &eventHandler) {

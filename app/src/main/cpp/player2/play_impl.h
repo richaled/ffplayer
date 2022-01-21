@@ -13,13 +13,12 @@ namespace player {
         void Init(const std::string &url);
 
     private:
+        //读取线程
         void readThread();
-        //添加读取到的avpacket到队列中
-        void PutPacketInQueue(PacketQueue *queue, AVPacket *packet);
         //解码视频
         void DecodeVideo();
-        //解码后的视频添加到队列中
-        void PutFrameInQueue(FrameQueue*queue,AVFrame *frame);
+
+        void ReadTest();
 
     private:
         PacketQueue *audioPacketQueue_;
@@ -41,6 +40,7 @@ namespace player {
         volatile bool endOfStream_ = false;
 
 
+        int c = 0;
     };
 
 }

@@ -16,10 +16,10 @@ namespace player {
     }
 
     void PlayImpl::Init(const std::string &url) {
-        audioPacketQueue_ = PacketQueueCreate(100);
-        audioFrameQueue_ = FrameQueueCreate(100);
-        videoPacketQueue_ = PacketQueueCreate(100);
-        videoFrameQueue_ = FrameQueueCreate(100);
+        audioPacketQueue_ = PacketQueueCreate(40);
+        audioFrameQueue_ = FrameQueueCreate(40);
+        videoPacketQueue_ = PacketQueueCreate(40);
+        videoFrameQueue_ = FrameQueueCreate(40);
 
         packetPool_ = PacketPoolCreate(20);
         videoFramePool_ = FramePoolCreate(4);
@@ -50,6 +50,7 @@ namespace player {
             auto videoFunc = [&](){
                 //decode
                 DecodeVideo();
+//                ReadTest();
             };
             videoThread_ = std::thread(videoFunc);
         }
@@ -71,12 +72,12 @@ namespace player {
             int ret = av_read_frame(ffContext_->GetFormatContext(), packet);
             if(ret == 0){
 
-//                LOGI("read packet %ld,stream index = %d",packet->pts,packet->stream_index);
+//                LOGI("read packet %ld,stream index = %d",packet->duration,packet->stream_index);
                 //如果是音频
                 if(packet->stream_index == ffContext_->GetAudioIndex()){
 
                 } else if(packet->stream_index == ffContext_->GetVideoIndex()){
-                    LOGI("add video queue %ld",packet->pts);
+                    LOGI("add video queue %ld",packet->pos);
                     //添加到队列中
                     PacketPutInQueue(videoPacketQueue_,packet);
                     packet = nullptr;
@@ -97,6 +98,8 @@ namespace player {
             }
         }
     }
+
+
 
     void PlayImpl::DecodeVideo() {
         AVFrame* frame = GetFrameFromPool(videoFramePool_);
@@ -132,6 +135,7 @@ namespace player {
                     LOGE("send packet error %s",av_err2str(ret));
                     break;
                 }
+                LOGI("send packet success ");
             }else if(ret == AVERROR(EINVAL)){
                 //回调错误 todo
                 LOGE("receive error %s",av_err2str(ret));
@@ -144,15 +148,20 @@ namespace player {
         }
     }
 
-    void PlayImpl::PutFrameInQueue(FrameQueue *queue, AVFrame *frame) {
-        std::unique_lock<std::mutex> lock(queue->mutex);
-        while (queue->count == queue->size){
-            queue->cond.wait(lock);
+    void PlayImpl::ReadTest() {
+        while (true){
+            AVPacket *packet = GetPacketFromQueue(videoPacketQueue_);
+            if(packet == nullptr){
+                LOGE("read packet empty");
+                usleep(10000);
+            } else{
+                LOGI("read packet :%ld,count %d",packet->duration,c++);
+                if(c > 30){
+                    LOGE("discard packet");
+                    break;
+                }
+            }
         }
-        queue->frames[queue->write_index] = frame;
-        queue->write_index = (queue->write_index + 1) % queue->size;
-        queue->count++;
-        lock.unlock();
     }
 
 

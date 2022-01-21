@@ -30,13 +30,14 @@ namespace player {
             queue->cond.wait(lock);
             LOGI("queue wait");
         }*/
-        while (queue->count >= 2){
+        LOGI("write count : %d" ,queue->count);
+        while (queue->count >= 1){
+            LOGI("queue write wait");
             queue->cond.wait(lock);
-            LOGI("queue wait");
         }
         queue->duration += packet->duration;
         queue->packets[queue->write_index] = packet;
-        LOGI("queue add........ count %d,%p",queue->write_index,packet);
+        LOGE("queue write index %d,%p",queue->write_index,packet);
         queue->write_index = (queue->write_index + 1) % queue->size;
         queue->count++;
         queue->total_bytes += packet->size;
@@ -47,11 +48,12 @@ namespace player {
     AVPacket *GetPacketFromQueue(PacketQueue *queue){
         std::unique_lock<std::mutex> lock(queue->mutex);
         if(queue->count == 0){
+            LOGI("queue get empty");
             lock.unlock();
             return nullptr;
         }
         AVPacket *packet = queue->packets[queue->read_index];
-        LOGI("queue get count %d,%p",queue->read_index,packet);
+        LOGI("queue read index %d,%p",queue->read_index,packet);
         queue->read_index = (queue->read_index + 1) % queue->size;
         queue->count--;
         queue->duration -= packet->duration;
@@ -64,6 +66,8 @@ namespace player {
     PacketPool* PacketPoolCreate(int size){
         PacketPool *pool = (PacketPool*)malloc(sizeof(PacketPool));
         pool->size = size;
+        pool->index = 0;
+        pool->count = 0;
         pool->packets = (AVPacket **)av_malloc(sizeof(AVPacket *) * size);
         for (int i = 0; i < pool->size; i++){
             pool->packets[i] = av_packet_alloc();

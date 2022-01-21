@@ -32,9 +32,9 @@ namespace player{
     } PacketQueue;
 
     typedef struct PacketPool {
-        int index;
+        int index = 0;
         int size;
-        int count;
+        int count = 0;
         AVPacket **packets;
     } PacketPool;
 
@@ -42,8 +42,8 @@ namespace player{
         std::mutex mutex;
         std::condition_variable cond;
         AVFrame **frames;
-        int read_index;
-        int write_index;
+        int read_index = 0;
+        int write_index = 0;
         int count;
         unsigned int size;
         AVFrame flush_frame;

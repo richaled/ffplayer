@@ -5,9 +5,12 @@
 
 #include <eventloop/event.h>
 #include <eventloop/event_dispatcher.h>
+#include <player2/opengl/opengl_render.h>
+#include <player2/opengl/egl_core.h>
+#include <player2/opengl/yuv_render.h>
+#include <player2/opengl/frame_render.h>
 #include "eventloop/event_handler.h"
 #include "media_base.h"
-#include "video_render.h"
 #include "play_impl.h"
 
 using namespace test;
@@ -48,6 +51,9 @@ namespace player {
         Player();
         virtual ~Player();
 
+        //处理接收的事件
+        void HandleEvent(const std::shared_ptr<Event> &event) override;
+
         /**
          * prepare
          */
@@ -57,21 +63,54 @@ namespace player {
             return isPrepare_;
         };
 
-        //处理接收的事件
-        void HandleEvent(const std::shared_ptr<Event> &event) override;
+        /**
+         * 播放相关片段
+         * @param mediaClip
+         * @return
+         */
+        int Start(const MediaClip &mediaClip);
+
+
+        void CreateSurfaceWindow(void *window);
+        void DestorySurfaceWindow();
+        void SurfaceWindowSizeChange(const int width, const int height);
+
+    protected:
+        //window create, 不同平台各自实现
+        virtual EGLSurface GetPlatformSurface(void *window);
+
+        //window size change
+
 
     private:
         void OnPrepare(const std::shared_ptr<Event> &event);
-
+        void OnCreateWindow(const std::shared_ptr<Event> &event);
+        void OnDestoryWindow();
+        void OnPlayStart(const std::shared_ptr<Event> &event);
+        bool CreateGL();
         int InitRender();
+        void OnRenderVideoFrame();
+        int DrawFrame();
+        void CreateFrameBufferAndRender();
+        void ReleaseFrame();
+        void Draw(int textureId);
+    protected:
+        bool isPrepare_ = false;
+        MediaInfo mediaInfo_;
+        std::shared_ptr<EglCore> eglCore_;
+        std::shared_ptr<OpenglRender> videoRender_;
+        std::shared_ptr<PlayImpl> playImpl_;
+        EGLSurface renderSurface_;
     private:
         std::shared_ptr<EventDispatcher> dispatcher_;
         PlayerState playerState_ = PlayerState::kNone; //播放器状态
-
-        bool isPrepare_ = false;
-        MediaInfo mediaInfo_;
-        std::shared_ptr<VideoRender> videoRender_;
-        std::shared_ptr<PlayImpl> playImpl_;
+        MediaClip currentClip_;
+        bool windowCreated_ = false;
+        int frameWidth_,frameHeight_;
+        int surfaceWidth_,surfaceHeight_;
+        std::shared_ptr<YuvRender> yuvRender_;
+        std::shared_ptr<FrameBufferRender> frameBufferRender_;
+        GLuint drawTextureId_;
     };
 
 }

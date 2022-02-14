@@ -27,7 +27,7 @@ namespace player {
 
         ffContext_->InitFFmpeg();
 
-        int ret = ffContext_->InitAvContext(url.c_str(), false);
+        int ret = ffContext_->InitAvContext(url.c_str(), isHardWare_);
         if(ret != 0){
             LOGE("init avcontext fail");
             return;
@@ -55,7 +55,7 @@ namespace player {
             videoThread_ = std::thread(videoFunc);
         }
 
-
+        playStatus_ = PlayStatus::IDEL;
     }
 
     void PlayImpl::readThread() {
@@ -162,6 +162,18 @@ namespace player {
                 }
             }
         }
+    }
+
+    int64_t PlayImpl::GetVideoFramePts() {
+        int64_t video_frame_pts;
+        if(!isHardWare_){
+            video_frame_pts = av_rescale_q(videoFrame_->pts,
+                                           ffContext_->formatContext_->streams[ffContext_->videoIndex_]->time_base,
+                                           AV_TIME_BASE_Q);
+        } else{
+            video_frame_pts = videoFrame_->pts;
+        }
+        return video_frame_pts;
     }
 
 

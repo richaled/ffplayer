@@ -173,4 +173,18 @@ namespace player {
         free(queue);
     }
 
+    AVFrame* GetFrameQueue(FrameQueue *queue){
+        std::unique_lock<std::mutex> lock(queue->mutex);
+        if (queue->count == 0) {
+            lock.unlock();
+            return NULL;
+        }
+        AVFrame* frame = queue->frames[queue->read_index];
+        queue->read_index = (queue->read_index + 1) % queue->size;
+        queue->count--;
+        queue->cond.notify_all();
+        lock.unlock();
+        return frame;
+    }
+
 }

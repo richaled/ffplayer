@@ -65,4 +65,26 @@ Java_com_test_ffmpegdemo_player_MediaPlayer2_nativeIsPrepare(JNIEnv *env, jobjec
     return player->IsPrepare() ? JNI_TRUE : JNI_FALSE;
 }
 
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_test_ffmpegdemo_player_MediaPlayer2_nativeCreateSurface(JNIEnv *env, jobject thiz,
+                                                                 jobject surface) {
+    std::shared_ptr<Player> player = JniUtils::CopyRefGet<Player>(
+            env, thiz, kPlayer2);
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_test_ffmpegdemo_player_MediaPlayer2_nativeSurfaceSizeChange(JNIEnv *env, jobject thiz,
+                                                                     jint width, jint height) {
+    // TODO: implement nativeSurfaceSizeChange()
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_test_ffmpegdemo_player_MediaPlayer2_nativeDestorySurface(JNIEnv *env, jobject thiz) {
+    // TODO: implement nativeDestorySurface()
+}
+
 

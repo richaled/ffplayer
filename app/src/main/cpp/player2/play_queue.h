@@ -35,10 +35,11 @@ namespace player{
      */
     FrameQueue* FrameQueueCreate(unsigned int size);
     void FrameQueueFree(FrameQueue *queue);
+    AVFrame* GetFrameQueue(FrameQueue *queue);
 
 
 
 
-}
+    }
 
 

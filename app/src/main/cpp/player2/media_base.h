@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include "cstdint"
 
 namespace test{
@@ -11,6 +12,9 @@ namespace test{
         int64_t start_time;
         int64_t end_time;
         int type;
+        bool IsValid(){
+            return !file_name.empty() && start_time > 0 && end_time > start_time;
+        }
     } MediaClip;
 
     typedef struct MediaInfo{

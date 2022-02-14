@@ -2,8 +2,21 @@
 
 #include "play_queue.h"
 #include "ff_context.h"
+#include "clock.h"
 
 namespace player {
+
+    //播放器状态
+    typedef enum {
+        UNINIT = -1,
+        IDEL = 0,
+        PLAYING,
+        PAUSED,
+        SEEKING,
+        SEEK_COMPLETE,
+        BUFFER_EMPTY,
+        BUFFER_FULL
+    } PlayStatus;
 
     class PlayImpl {
         friend class FFContext;
@@ -11,6 +24,24 @@ namespace player {
         PlayImpl();
 
         void Init(const std::string &url);
+
+        PlayStatus GetPlayStaus() const{
+            return playStatus_;
+        }
+
+        AVFrame * GetFromFrameQueue() const {
+            return GetFrameQueue(videoFrameQueue_);
+        }
+
+        int64_t GetVideoFramePts();
+
+        bool HasAudio() const {
+            return ffContext_->HasAudio();
+        }
+
+        bool IsHardWare() const {
+            return isHardWare_;
+        }
 
     private:
         //读取线程
@@ -39,8 +70,13 @@ namespace player {
         volatile bool abortRequest;
         volatile bool endOfStream_ = false;
 
-
+        PlayStatus playStatus_ = PlayStatus ::UNINIT;
         int c = 0;
+        bool isHardWare_ = false;
+
+    public:
+        AVFrame *videoFrame_;
+        Clock *videoClock_;
     };
 
 }

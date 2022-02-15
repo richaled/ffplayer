@@ -47,7 +47,15 @@ namespace player{
         glUseProgram(program_);
     }
 
-    void OpenglRender::ProcessImage(GLuint textureId,GLfloat *matrix) {
+    void OpenglRender::ProcessImage(GLuint texture_id, const GLfloat *vertex_coordinate, const GLfloat *texture_coordinate) {
+        float texture_matrix[4 * 4];
+        memset(reinterpret_cast<void*>(texture_matrix), 0, 16*sizeof(float));
+        texture_matrix[0] = texture_matrix[5] = texture_matrix[10] = texture_matrix[15] = 1.0f;
+        ProcessImage(texture_id, vertex_coordinate, texture_coordinate, texture_matrix);
+    }
+
+    void OpenglRender::ProcessImage(GLuint textureId, const GLfloat* vertex_coordinate, const GLfloat* texture_coordinate, GLfloat* texture_matrix){
+        METHOD
         if(program_ == 0){
             LOGE("program is empty");
             return;
@@ -62,11 +70,11 @@ namespace player{
         //attribute 可用
         auto positionAttribute = static_cast<GLuint>(glGetAttribLocation(program_, "position"));
         glEnableVertexAttribArray(positionAttribute);
-        glVertexAttribPointer(positionAttribute, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (const void *) 0);
+        glVertexAttribPointer(positionAttribute, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), vertex_coordinate);
         auto inputTextureAttribute = static_cast<GLuint>(glGetAttribLocation(program_, "inputTextureCoordinate"));
         glEnableVertexAttribArray(inputTextureAttribute);
-        glVertexAttribPointer(inputTextureAttribute, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (const void *) 0);
-        glUniformMatrix4fv(glGetUniformLocation(program_, "textureMatrix"), 1, GL_FALSE, matrix);
+        glVertexAttribPointer(inputTextureAttribute, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), texture_coordinate);
+        glUniformMatrix4fv(glGetUniformLocation(program_, "textureMatrix"), 1, GL_FALSE, texture_matrix);
 
         //纹理
         glActiveTexture(GL_TEXTURE0);

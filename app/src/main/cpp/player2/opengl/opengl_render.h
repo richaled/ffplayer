@@ -31,7 +31,9 @@ namespace player {
         void SetRenderType(const TextureType textureType = TextureType::TEXTURE_2D);
 
         void ActiveProgram();
-        void ProcessImage(GLuint textureId,GLfloat *matrix);
+        void ProcessImage(GLuint texture_id, const GLfloat* vertex_coordinate, const GLfloat* texture_coordinate);
+        void ProcessImage(GLuint texture_id, const GLfloat* vertex_coordinate, const GLfloat* texture_coordinate, GLfloat* texture_matrix);
+
 
     protected:
 

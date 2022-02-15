@@ -44,7 +44,7 @@ namespace player{
         AVFrame **frames;
         int read_index = 0;
         int write_index = 0;
-        int count;
+        int count = 0;
         unsigned int size;
         AVFrame flush_frame;
     } FrameQueue;

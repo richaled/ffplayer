@@ -1,7 +1,9 @@
 #pragma once
 
 #include <vector>
+#include <map>
 #include "cstdint"
+#include "eventloop/any.h"
 
 namespace test{
     /**
@@ -19,12 +21,27 @@ namespace test{
 
     typedef struct MediaInfo{
         std::vector<MediaClip> clips;
-        bool hardWare = false;
 
         bool IsEmpty() const {
             return clips.empty();
         }
 
     }MediaInfo;
+
+
+    enum class OptionKey{
+        kEnableHardware = 1,//硬件编解码
+    };
+
+    using Options = std::map<OptionKey, any>;
+
+    template<typename T>
+    T OptionsGet(const Options &options, OptionKey key, const T &defaultVal) {
+        const auto &itr = options.find(key);
+        if (itr == options.end()) {
+            return defaultVal;
+        }
+        return any_cast<T>(itr->second);
+    }
 
 }

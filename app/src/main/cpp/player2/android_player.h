@@ -6,6 +6,9 @@
 
 #include "player.h"
 
+/**
+ * Android 播放器，主要是实现一些Android特有的如anativewindow，jni等
+ */
 namespace player{
     class AndroidPlayer : public Player {
     public:
@@ -13,7 +16,7 @@ namespace player{
         ~AndroidPlayer();
 
         EGLSurface GetPlatformSurface(void *window) override;
-
+        void ReleaseSurface(void *window) override ;
     private:
 
     };

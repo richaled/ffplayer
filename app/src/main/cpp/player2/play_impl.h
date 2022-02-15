@@ -3,6 +3,7 @@
 #include "play_queue.h"
 #include "ff_context.h"
 #include "clock.h"
+#include "media_base.h"
 
 namespace player {
 
@@ -23,7 +24,9 @@ namespace player {
     public:
         PlayImpl();
 
-        void Init(const std::string &url);
+        int Init(const std::string &url, const test::Options &options);
+
+        void Start();
 
         PlayStatus GetPlayStaus() const{
             return playStatus_;
@@ -45,7 +48,7 @@ namespace player {
 
     private:
         //读取线程
-        void readThread();
+        void ReadThread();
         //解码视频
         void DecodeVideo();
 
@@ -57,7 +60,6 @@ namespace player {
         PacketQueue *videoPacketQueue_;
         FrameQueue *videoFrameQueue_;
         PacketPool *packetPool_;
-        FramePool *videoFramePool_;
         FramePool *audioFramePool_;
 
         std::shared_ptr<FFContext> ffContext_;
@@ -67,7 +69,7 @@ namespace player {
         std::thread videoThread_;
         std::thread audioThread_;
 
-        volatile bool abortRequest;
+        volatile bool abortRequest = false;
         volatile bool endOfStream_ = false;
 
         PlayStatus playStatus_ = PlayStatus ::UNINIT;
@@ -75,7 +77,8 @@ namespace player {
         bool isHardWare_ = false;
 
     public:
-        AVFrame *videoFrame_;
+        FramePool *videoFramePool_;
+        AVFrame *videoFrame_ = nullptr;
         Clock *videoClock_;
     };
 

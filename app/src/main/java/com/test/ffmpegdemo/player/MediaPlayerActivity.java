@@ -16,6 +16,9 @@ import java.util.List;
 
 public class MediaPlayerActivity extends AppCompatActivity implements View.OnClickListener, AcpListener {
 
+
+    private MediaPlayerView mediaPlayerView;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -23,6 +26,7 @@ public class MediaPlayerActivity extends AppCompatActivity implements View.OnCli
         setContentView(R.layout.activity_media_player);
 
         findViewById(R.id.test_btn).setOnClickListener(this);
+        mediaPlayerView = findViewById(R.id.media_player_view);
 
         requestPremission();
     }
@@ -41,7 +45,8 @@ public class MediaPlayerActivity extends AppCompatActivity implements View.OnCli
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.test_btn:{
-                MediaPlayer2 mediaPlayer2 = new MediaPlayer2();
+//                MediaPlayer2 mediaPlayer2 = new MediaPlayer2();
+                MediaPlayer2 mediaPlayer = mediaPlayerView.getMediaPlayer();
 
                 MediaClip[] mediaClips = new MediaClip[1];
                 MediaClip mediaClip = new MediaClip();
@@ -49,7 +54,14 @@ public class MediaPlayerActivity extends AppCompatActivity implements View.OnCli
                 mediaClip.timeRange = new MediaClip.TimeRange(0,40);
                 mediaClip.type = 1;
                 mediaClips[0] = mediaClip;
-                mediaPlayer2.prepare(mediaClips);
+                mediaPlayer.setMediaClipSource(mediaClips);
+
+//                Options options = new Options();
+//                options.setBool(Options.OptionKey.kEnableHardware,false);
+//                mediaPlayer.prepare(options);
+
+                mediaPlayer.play();
+
                 break;
             }
         }

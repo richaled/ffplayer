@@ -1,3 +1,4 @@
+#include <android/native_window.h>
 #include "android_player.h"
 
 namespace player {
@@ -14,4 +15,10 @@ namespace player {
         ANativeWindow *nativeWindow = reinterpret_cast<ANativeWindow*>(window);
         return eglCore_->CreateWindowSurface(nativeWindow);
     }
+
+    void AndroidPlayer::ReleaseSurface(void *window) {
+        ANativeWindow_release((ANativeWindow *)window);
+    }
+
+
 }

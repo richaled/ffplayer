@@ -14,15 +14,11 @@ namespace player {
 
     bool EglCore::Init(const bool enableMutableRenderBuffer, const EGLContext sharedEglContext) {
         EGLint eglConfigAttrs[] = {
-                EGL_SURFACE_TYPE, EGL_WINDOW_BIT | (enableMutableRenderBuffer
-                                                    ? 0x1000 /*EGL_MUTABLE_RENDER_BUFFER_BIT_KHR*/
-                                                    : 0),
+                EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
                 EGL_RED_SIZE, 8,
                 EGL_GREEN_SIZE, 8,
                 EGL_BLUE_SIZE, 8,
                 EGL_ALPHA_SIZE, 8,
-                EGL_DEPTH_SIZE, 16,
-                EGL_STENCIL_SIZE, 8,
                 EGL_NONE
         };
 

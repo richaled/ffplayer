@@ -54,22 +54,32 @@ namespace player {
         //处理接收的事件
         void HandleEvent(const std::shared_ptr<Event> &event) override;
 
+        void SetMediaSources(const MediaInfo &mediaInfo);
+
+        void AddMediaClip(const MediaClip &mediaClip);
+
         /**
-         * prepare
+         * prepare options
          */
-        void Prepare(const MediaInfo &mediaInfo);
+        void Prepare(const Options &options);
 
         bool IsPrepare() const {
             return isPrepare_;
         };
 
-        /**
-         * 播放相关片段
-         * @param mediaClip
-         * @return
-         */
-        int Start(const MediaClip &mediaClip);
+        int Play();
 
+        void Resume();
+
+        void Stop();
+
+        void SeekTo(double timestampMs);
+
+        void Release();
+
+        void Reset();
+
+        int Start();
 
         void CreateSurfaceWindow(void *window);
         void DestorySurfaceWindow();
@@ -79,8 +89,7 @@ namespace player {
         //window create, 不同平台各自实现
         virtual EGLSurface GetPlatformSurface(void *window);
 
-        //window size change
-
+        virtual void ReleaseSurface(void *window);
 
     private:
         void OnPrepare(const std::shared_ptr<Event> &event);
@@ -111,6 +120,11 @@ namespace player {
         std::shared_ptr<YuvRender> yuvRender_;
         std::shared_ptr<FrameBufferRender> frameBufferRender_;
         GLuint drawTextureId_;
+        void *window_;
+        Options options_;
+
+//        std::mutex mutex_;
+//        std::condition_variable conditionVariable_;
     };
 
 }

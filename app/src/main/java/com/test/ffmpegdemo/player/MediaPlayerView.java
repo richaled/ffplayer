@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.SurfaceTexture;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -17,6 +18,7 @@ import com.test.ffmpegdemo.R;
 
 public class MediaPlayerView extends FrameLayout implements SurfaceHolder.Callback, TextureView.SurfaceTextureListener {
 
+    private static final String TAG = MediaPlayerView.class.getName();
     private SurfaceView surfaceView;
     private TextureView textureView;
 
@@ -25,10 +27,11 @@ public class MediaPlayerView extends FrameLayout implements SurfaceHolder.Callba
 
     public MediaPlayerView(@NonNull Context context) {
         super(context);
+        initView(context);
     }
 
     public MediaPlayerView(@NonNull Context context, @Nullable AttributeSet attrs) {
-        super(context, attrs);
+        this(context, attrs, 0);
     }
 
     public MediaPlayerView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
@@ -36,7 +39,10 @@ public class MediaPlayerView extends FrameLayout implements SurfaceHolder.Callba
 
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.MediaPlayerView);
         useTextureView = ta.getBoolean(R.styleable.MediaPlayerView_usetextureview,false);
+        initView(context);
+    }
 
+    void initView(Context context){
         if(useTextureView){
             textureView = new TextureView(context);
             textureView.setSurfaceTextureListener(this);
@@ -52,11 +58,13 @@ public class MediaPlayerView extends FrameLayout implements SurfaceHolder.Callba
     //surface view
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
+        Log.i(TAG,"surfaceCreated");
         mediaPlayer.createSurface(holder.getSurface());
     }
 
     @Override
     public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
+        Log.i(TAG,"surfaceChanged");
         mediaPlayer.surfaceSizeChange(width,height);
     }
 
@@ -88,4 +96,18 @@ public class MediaPlayerView extends FrameLayout implements SurfaceHolder.Callba
     public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surface) {
 
     }
+
+    public MediaPlayer2 getMediaPlayer(){
+        return mediaPlayer;
+    }
+
+
+    public void setTouchListener(OnTouchListener onTouchListener){
+        if(useTextureView){
+            textureView.setOnTouchListener(onTouchListener);
+        }else {
+            surfaceView.setOnTouchListener(onTouchListener);
+        }
+    }
+
 }

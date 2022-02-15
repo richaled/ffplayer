@@ -8,6 +8,7 @@ namespace learn {
 
     //player2
     extern const uint32_t kPlayer2;
+    extern const uint32_t kOptions;
 
 
 }

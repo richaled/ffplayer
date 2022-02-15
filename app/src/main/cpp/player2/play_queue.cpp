@@ -24,15 +24,16 @@ namespace player {
     }
 
     int PacketPutInQueue(PacketQueue *queue, AVPacket *packet) {
+        METHOD
         std::unique_lock<std::mutex> lock(queue->mutex);
         /*if(queue->max_duration > 0 && queue->duration + packet->duration > queue->max_duration){
             //等待
             queue->cond.wait(lock);
             LOGI("queue wait");
         }*/
-        LOGI("write count : %d" ,queue->count);
-        while (queue->count >= 1){
-            LOGI("queue write wait");
+//        LOGI("write count : %d" ,queue->count);
+        if (queue->count >= 1){
+            LOGI("packet queue write wait");
             queue->cond.wait(lock);
         }
         queue->duration += packet->duration;
@@ -48,7 +49,7 @@ namespace player {
     AVPacket *GetPacketFromQueue(PacketQueue *queue){
         std::unique_lock<std::mutex> lock(queue->mutex);
         if(queue->count == 0){
-            LOGI("queue get empty");
+            LOGI("packet queue get empty");
             lock.unlock();
             return nullptr;
         }
@@ -154,6 +155,10 @@ namespace player {
     }
 
     void UnrefFrameFromPool(FramePool *pool, AVFrame *frame){
+        if(frame == nullptr){
+            return;
+        }
+//        av_frame_free(&frame);
         av_frame_unref(frame);
         pool->count--;
     }
@@ -174,12 +179,15 @@ namespace player {
     }
 
     AVFrame* GetFrameQueue(FrameQueue *queue){
+        LOGI("get frame count : %d",queue->count);
         std::unique_lock<std::mutex> lock(queue->mutex);
         if (queue->count == 0) {
+//            queue->cond.notify_all();
             lock.unlock();
-            return NULL;
+            return nullptr;
         }
         AVFrame* frame = queue->frames[queue->read_index];
+        LOGI("get frame queue pts : %ld,read index :%d",frame->pts ,queue->read_index);
         queue->read_index = (queue->read_index + 1) % queue->size;
         queue->count--;
         queue->cond.notify_all();
@@ -187,4 +195,18 @@ namespace player {
         return frame;
     }
 
+    int PutFrameQueue(FrameQueue *queue, AVFrame *frame){
+        std::unique_lock<std::mutex> lock(queue->mutex);
+//        LOGE("queue count same queue size ,count : %d, size : %d",queue->count,queue->size);
+        while(queue->count == queue->size){
+//            LOGE("queue count same queue size ,%d",queue->count);
+            queue->cond.wait(lock);
+        }
+        LOGI("put frame queue pts : %ld,write index :%d",frame->pts,queue->write_index);
+        queue->frames[queue->write_index] = frame;
+        queue->write_index = (queue->write_index + 1) % queue->size;
+        queue->count++;
+        lock.unlock();
+        return 0;
+    }
 }

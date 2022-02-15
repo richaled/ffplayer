@@ -15,26 +15,33 @@ namespace player {
 #endif
     }
 
-    void PlayImpl::Init(const std::string &url) {
+    int PlayImpl::Init(const std::string &url,const test::Options &options) {
         audioPacketQueue_ = PacketQueueCreate(40);
         audioFrameQueue_ = FrameQueueCreate(40);
         videoPacketQueue_ = PacketQueueCreate(40);
-        videoFrameQueue_ = FrameQueueCreate(40);
+        videoFrameQueue_ = FrameQueueCreate(60);
 
         packetPool_ = PacketPoolCreate(20);
-        videoFramePool_ = FramePoolCreate(4);
+        videoFramePool_ = FramePoolCreate(8);
         audioFramePool_ = FramePoolCreate(8);
 
+        videoClock_ = clock_create();
+        isHardWare_ = OptionsGet(options,test::OptionKey::kEnableHardware, false);
+        LOGI("hardware enable : %d",isHardWare_);
         ffContext_->InitFFmpeg();
-
         int ret = ffContext_->InitAvContext(url.c_str(), isHardWare_);
         if(ret != 0){
             LOGE("init avcontext fail");
-            return;
+            return ret;
         }
+        playStatus_ = PlayStatus::IDEL;
+        return ret;
+    }
 
+    void PlayImpl::Start() {
+        LOGI("play thread start");
         auto readFunc = [&](){
-            readThread();
+            ReadThread();
         };
         readThread_ = std::thread(readFunc);
 
@@ -54,15 +61,15 @@ namespace player {
             };
             videoThread_ = std::thread(videoFunc);
         }
-
-        playStatus_ = PlayStatus::IDEL;
+        playStatus_ = PlayStatus::PLAYING;
     }
 
-    void PlayImpl::readThread() {
+    void PlayImpl::ReadThread() {
         AVPacket *packet = nullptr;
         while (!abortRequest){
             if(audioPacketQueue_->total_bytes + videoPacketQueue_->total_bytes >= DEFAULT_BUFFER_SIZE){
                 //改变状态暂停播放，线程暂停读取 todo
+                LOGI("pause read thread");
                 continue;
             }
             if (packet == nullptr) {
@@ -107,15 +114,17 @@ namespace player {
         while (!abortRequest){
             //111111
             ret = avcodec_receive_frame(ffContext_->videoCodecContext_, frame);
-            LOGI("receive frame ret : %s" ,av_err2str(ret));
+//            LOGI("receive frame ret : %s" ,av_err2str(ret));
             if(ret == 0){
                 LOGI("receive frame pts : %ld",frame->pts);
                 //添加到队列中
-//                PutFrameInQueue(videoFrameQueue_, frame);
+                PutFrameQueue(videoFrameQueue_, frame);
+                usleep(2000);
+                frame = GetFrameFromPool(videoFramePool_);
             }else if(ret == AVERROR(EAGAIN) || ret == AVERROR_EOF){
                 AVPacket *packet = GetPacketFromQueue(videoPacketQueue_);
                 if(packet == nullptr){
-                    LOGI("get queue packet is empty");
+//                    LOGI("get queue packet is empty");
                     if(endOfStream_){
                         ret = avcodec_send_packet(ffContext_->videoCodecContext_, packet);
                         if(ret == AVERROR_EOF){

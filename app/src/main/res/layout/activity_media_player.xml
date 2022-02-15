@@ -2,7 +2,14 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:MediaPlayerView="http://schemas.android.com/tools">
+
+    <com.test.ffmpegdemo.player.MediaPlayerView
+        android:id="@+id/media_player_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        MediaPlayerView:usetextureview="false"/>
 
     <Button
         android:id="@+id/test_btn"

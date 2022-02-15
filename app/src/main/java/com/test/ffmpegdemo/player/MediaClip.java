@@ -18,7 +18,7 @@ public class MediaClip {
             this.endTime = endTime;
         }
 
-        public long startTime;
-        public long endTime;
+        public long startTime = 0;
+        public long endTime = 0;
     }
 }

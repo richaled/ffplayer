@@ -45,7 +45,6 @@ namespace test {
         if(std::this_thread::get_id() == event_thread_.get_id()){
             event_base_loopbreak(event_base_);
         } else{
-            //添加一个中断事件 todo
             BreakEventKey *breakEventKey = new BreakEventKey();
             event *ev = evtimer_new(event_base_,OnQuitEvent,breakEventKey);
             event_priority_set(ev,100);

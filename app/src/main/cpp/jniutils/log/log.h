@@ -2,19 +2,20 @@
 #include <string>
 
 #define  TAG    "xxxx"
-#define LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG,TAG,__VA_ARGS__) // 定义LOGD类型
-#define LOGI(...)  __android_log_print(ANDROID_LOG_INFO,TAG,__VA_ARGS__) // 定义LOGI类型
-#define LOGW(...)  __android_log_print(ANDROID_LOG_WARN,TAG,__VA_ARGS__) // 定义LOGW类型
-#define LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,TAG,__VA_ARGS__) // 定义LOGE类型
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
+#define LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG,__FILENAME__,__VA_ARGS__) // 定义LOGD类型
+#define LOGI(...)  __android_log_print(ANDROID_LOG_INFO,__FILENAME__,__VA_ARGS__) // 定义LOGI类型
+#define LOGW(...)  __android_log_print(ANDROID_LOG_WARN,__FILENAME__,__VA_ARGS__) // 定义LOGW类型
+#define LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,__FILENAME__,__VA_ARGS__) // 定义LOGE类型
+#define LOG(NAME,...)  __android_log_print(ANDROID_LOG_INFO,NAME,__VA_ARGS__) // 定义LOGI类型
 
 #define FUN_BEGIN_TIME(FUN) {\
-    LOGE("%s:%s func start", __FILE__, FUN); \
     long long t0 = GetSysCurrentTime();
 
 #define FUN_END_TIME(FUN) \
     long long t1 = GetSysCurrentTime(); \
-    LOGE("%s:%s func cost time %ldms", __FILE__, FUN, (long)(t1-t0));}
+    LOG(__FILENAME__,"%s func cost time %ldms", FUN, (long)(t1-t0));}
 
 #define BEGIN_TIME(FUN) {\
     LOGE("%s func start", FUN); \
@@ -36,5 +37,9 @@ static long long GetSysCurrentTime()
 
 #define DEBUG_LOGE(...) LOGE("DEBUG_LOGE %s line = %d",  __FUNCTION__, __LINE__)
 
+
 #define METHOD LOGI("current func :%s",__func__);
+#define METHODI LOG("%s",__func__);
+
+#define THREAD_ID LOGI("current func : %s, thread id : %d",__func__, std::this_thread::get_id());
 

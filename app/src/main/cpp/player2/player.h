@@ -123,8 +123,8 @@ namespace player {
         void *window_;
         Options options_;
 
-//        std::mutex mutex_;
-//        std::condition_variable conditionVariable_;
+        std::mutex mutex_;
+        std::condition_variable conditionVariable_;
     };
 
 }

@@ -81,13 +81,13 @@ namespace player {
 
     void Player::OnPrepare(const std::shared_ptr<Event> &event) {
 
-//        std::unique_lock<std::mutex> lock(mutex_);
+        std::unique_lock<std::mutex> lock(mutex_);
         int clipIndex = -1;
         event->GetDataCopy("kPlayerPrepare", clipIndex);
         LOGI("current clipIndex : %d", clipIndex);
         if (clipIndex < 0) {
             LOGE("media clip is invalid");
-//            lock.unlock();
+            lock.unlock();
             return;
         }
         if (!playImpl_) {
@@ -108,9 +108,8 @@ namespace player {
         } else {
             LOGI("media info is empty");
         }
-//        lock.unlock();
-//        LOGI("prepare unlock");
-//        conditionVariable_.notify_all();
+        lock.unlock();
+        conditionVariable_.notify_all();
     }
 
     int Player::InitRender() {
@@ -151,7 +150,7 @@ namespace player {
     }
 
     void Player::OnCreateWindow(const std::shared_ptr<Event> &event) {
-        METHOD
+        THREAD_ID
         void *window;
         event->GetDataCopy("kEGLWindowCreate", window);
         window_ = window;
@@ -175,8 +174,6 @@ namespace player {
         windowCreated_ = true;
         //create render
         if (!videoRender_) {
-            auto mThreadId_ = std::this_thread::get_id();
-            LOGI("create video render -----------%d", mThreadId_);
             videoRender_ = std::make_shared<OpenglRender>(0, 0, DEFAULT_VERTEX_SHADER,
                                                           DEFAULT_FRAGMENT_SHADER);
         }
@@ -202,6 +199,7 @@ namespace player {
                     ->Post();
         }
         LOGI("start play start : %d",IsPrepare());
+        METHOD
         NewEvent(kPlayerStart, shared_from_this(), dispatcher_)
                 ->Post();
         return 0;
@@ -213,14 +211,14 @@ namespace player {
             return;
         }
         LOGI("play start %d",IsPrepare());
-//        std::unique_lock<std::mutex> lock(mutex_);
-//        conditionVariable_.wait(lock, [this](){ return IsPrepare(); });
-        LOGI("play start ----");
-//        lock.unlock();
+        std::unique_lock<std::mutex> lock(mutex_);
+        conditionVariable_.wait(lock, [this](){ return IsPrepare(); });
+        lock.unlock();
+        THREAD_ID
         playImpl_->Start();
         //渲染每一帧
-        NewEvent(kRenderVideoFrame, shared_from_this(), dispatcher_)
-                ->Post();
+//        NewEvent(kRenderVideoFrame, shared_from_this(), dispatcher_)
+//                ->Post();
     }
 
     void Player::OnRenderVideoFrame() {
@@ -229,6 +227,7 @@ namespace player {
             //绘制
 
         }
+        THREAD_ID
         if (playImpl_->GetPlayStaus() == PlayStatus::PLAYING) {
             //继续绘制还是等待
             int ret = DrawFrame();
@@ -276,8 +275,8 @@ namespace player {
         LOGI("videoFramePts : %ld， pts : %ld" ,videoFramePts, playImpl_->videoFrame_->pts);
         usleep(WAIT_FRAME_SLEEP_US);
 //        CreateFrameBufferAndRender();
-        ReleaseFrame();
-        return 0;
+//        ReleaseFrame();
+//        return 0;
 
         //
 //        int64_t videoFramePts = playImpl_->GetVideoFramePts();

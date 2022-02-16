@@ -84,7 +84,7 @@ namespace player {
     }
 
     bool EglCore::SwapBuffers(EGLSurface eglSurface) {
-        eglSwapBuffers(display_, eglSurface);
+        return eglSwapBuffers(display_, eglSurface);
     }
 
     void EglCore::DoneCurrent() {

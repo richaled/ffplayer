@@ -39,7 +39,7 @@ namespace player {
     }
 
     void PlayImpl::Start() {
-        LOGI("play thread start");
+        METHOD
         auto readFunc = [&](){
             ReadThread();
         };
@@ -56,7 +56,7 @@ namespace player {
         if(ffContext_->HasVideo()){
             auto videoFunc = [&](){
                 //decode
-                DecodeVideo();
+//                DecodeVideo();
 //                ReadTest();
             };
             videoThread_ = std::thread(videoFunc);
@@ -65,6 +65,7 @@ namespace player {
     }
 
     void PlayImpl::ReadThread() {
+        THREAD_ID
         AVPacket *packet = nullptr;
         while (!abortRequest){
             if(audioPacketQueue_->total_bytes + videoPacketQueue_->total_bytes >= DEFAULT_BUFFER_SIZE){
@@ -109,6 +110,7 @@ namespace player {
 
 
     void PlayImpl::DecodeVideo() {
+        THREAD_ID
         AVFrame* frame = GetFrameFromPool(videoFramePool_);
         int ret = 0;
         while (!abortRequest){

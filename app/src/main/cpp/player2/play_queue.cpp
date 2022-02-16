@@ -24,7 +24,7 @@ namespace player {
     }
 
     int PacketPutInQueue(PacketQueue *queue, AVPacket *packet) {
-        METHOD
+        THREAD_ID
         std::unique_lock<std::mutex> lock(queue->mutex);
         /*if(queue->max_duration > 0 && queue->duration + packet->duration > queue->max_duration){
             //等待
@@ -47,6 +47,7 @@ namespace player {
     }
 
     AVPacket *GetPacketFromQueue(PacketQueue *queue){
+        THREAD_ID
         std::unique_lock<std::mutex> lock(queue->mutex);
         if(queue->count == 0){
             LOGI("packet queue get empty");
@@ -179,6 +180,7 @@ namespace player {
     }
 
     AVFrame* GetFrameQueue(FrameQueue *queue){
+        THREAD_ID
         LOGI("get frame count : %d",queue->count);
         std::unique_lock<std::mutex> lock(queue->mutex);
         if (queue->count == 0) {
@@ -196,6 +198,7 @@ namespace player {
     }
 
     int PutFrameQueue(FrameQueue *queue, AVFrame *frame){
+        METHOD
         std::unique_lock<std::mutex> lock(queue->mutex);
 //        LOGE("queue count same queue size ,count : %d, size : %d",queue->count,queue->size);
         while(queue->count == queue->size){

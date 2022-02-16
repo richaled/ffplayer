@@ -96,6 +96,7 @@ namespace player {
         void OnCreateWindow(const std::shared_ptr<Event> &event);
         void OnDestoryWindow();
         void OnPlayStart(const std::shared_ptr<Event> &event);
+        void OnStop();
         bool CreateGL();
         void OnRenderVideoFrame();
         int DrawFrame();

@@ -57,6 +57,8 @@ namespace player {
             return audioIndex_;
         }
 
+        void Close();
+
     protected:
         //各个平台去实现
         virtual int InitHardWareCodec() = 0;
@@ -86,7 +88,6 @@ namespace player {
         int width_;
         int height_;
         int frameRotation_ = 0;
-
 
     };
 }

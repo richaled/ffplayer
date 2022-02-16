@@ -164,5 +164,87 @@ namespace player {
         return video_frame_pts;
     }
 
+    void PlayImpl::Stop() {
+        if(playStatus_ == IDEL){
+            return;
+        }
+        if(abortRequest){
+            return;
+        }
+        //clean queue
+        ClearQueues();
+        //停止线程
+        if(HasAudio()){
+            if(audioThread_.joinable()){
+                audioThread_.join();
+            }
+        }
+        if(HasVideo()){
+            if(videoThread_.joinable()){
+                videoThread_.join();
+            }
+        }
+        ClearQueues();
+        if(ffContext_){
+            ffContext_->Close();
+        }
+
+    }
+
+    void PlayImpl::ClearQueues() {
+        AVPacket *packet;
+        // clear context->audio_frame audio_frame_queue  audio_packet_queue
+        if (HasAudio()) {
+            /*if (context->audio_frame != NULL) {
+                if (context->audio_frame != &context->audio_frame_queue->flush_frame) {
+                    frame_pool_unref_frame(context->audio_frame_pool, context->audio_frame);
+                }
+            }*/
+            while (1) {
+                auto audio_frame = GetFrameQueue(audioFrameQueue_);
+                if (audio_frame == nullptr) {
+                    break;
+                }
+                if (audio_frame != &audioFrameQueue_->flush_frame) {
+                    UnrefFrameFromPool(audioFramePool_, audio_frame);
+                }
+            }
+            while (1) {
+                packet = GetPacketFromQueue(audioPacketQueue_);
+                if (packet == nullptr) {
+                    break;
+                }
+                if (packet != &audioPacketQueue_->flush_packet) {
+                    UnRefPacketFromPool(packetPool_, packet);
+                }
+            }
+        }
+        // clear context->video_frame video_frame_queue video_frame_packet
+        if (HasVideo()) {
+            if (videoFrame_ != NULL) {
+                if (videoFrame_ != &videoFrameQueue_->flush_frame) {
+                    UnrefFrameFromPool(videoFramePool_, videoFrame_);
+                }
+            }
+            while (1) {
+                videoFrame_ = GetFrameQueue(videoFrameQueue_);
+                if (videoFrame_ == nullptr) {
+                    break;
+                }
+                if (videoFrame_ != &videoFrameQueue_->flush_frame) {
+                    UnrefFrameFromPool(videoFramePool_,videoFrame_);
+                }
+            }
+            while (1) {
+                packet = GetPacketFromQueue(videoPacketQueue_);
+                if (packet == nullptr) {
+                    break;
+                }
+                if (packet != &videoPacketQueue_->flush_packet) {
+                    UnRefPacketFromPool(packetPool_,packet);
+                }
+            }
+        }
+    }
 
 }

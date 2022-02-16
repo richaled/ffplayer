@@ -69,6 +69,10 @@ namespace player {
                 OnRenderVideoFrame();
                 break;
             }
+            case kStop:{
+                OnStop();
+                break;
+            }
         }
     }
 
@@ -319,7 +323,7 @@ namespace player {
         if (playImpl_->IsHardWare()) {
 
         } else {
-            auto texture_coordinate = rotate_soft_decode_media_encode_coordinate(playImpl_->GetFrameRotate());
+            auto texture_coordinate = rotate_soft_decode_media_encode_coordinate(0);
             auto ratio = playImpl_->videoFrame_->width * 1.F / playImpl_->videoFrame_->linesize[0];
             glm::mat4 scale_matrix = glm::mat4(ratio);
             drawTextureId_ = yuvRender_->DrawFrame(playImpl_->videoFrame_,glm::value_ptr(scale_matrix),
@@ -364,10 +368,25 @@ namespace player {
         }
     }
 
+    void Player::Stop() {
+        NewEvent(kStop, shared_from_this(), dispatcher_)
+                ->Post();
+    }
+
+    void Player::OnStop() {
+        if(playImpl_){
+            playImpl_->Stop();
+        }
+        frameWidth_ = 0;
+        frameHeight_ = 0;
+        playerState_ = kStop;
+    }
+
     EGLSurface Player::GetPlatformSurface(void *window) {
         return nullptr;
     }
     void Player::ReleaseSurface(void *window) {
 
     }
+
 }

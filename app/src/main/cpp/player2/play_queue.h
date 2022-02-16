@@ -38,9 +38,6 @@ namespace player{
     AVFrame* GetFrameQueue(FrameQueue *queue);
     int PutFrameQueue(FrameQueue *queue, AVFrame *frame);
 
-
-
-
     }
 
 

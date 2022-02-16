@@ -87,6 +87,14 @@ Java_com_test_ffmpegdemo_player_MediaPlayer2_nativePlay(JNIEnv *env, jobject thi
 }
 
 extern "C"
+JNIEXPORT void JNICALL
+Java_com_test_ffmpegdemo_player_MediaPlayer2_nativeStop(JNIEnv *env, jobject thiz) {
+    std::shared_ptr<AndroidPlayer> player = JniUtils::CopyRefGet<AndroidPlayer>(
+            env, thiz, kPlayer2);
+    player->Stop();
+}
+
+extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_test_ffmpegdemo_player_MediaPlayer2_nativeIsPrepare(JNIEnv *env, jobject thiz) {
     std::shared_ptr<AndroidPlayer> player = JniUtils::CopyRefGet<AndroidPlayer>(

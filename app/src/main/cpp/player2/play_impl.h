@@ -28,6 +28,8 @@ namespace player {
 
         void Start();
 
+        void Stop();
+
         PlayStatus GetPlayStaus() const{
             return playStatus_;
         }
@@ -40,6 +42,10 @@ namespace player {
 
         bool HasAudio() const {
             return ffContext_->HasAudio();
+        }
+
+        bool HasVideo() const {
+            return ffContext_->HasVideo();
         }
 
         bool IsHardWare() const {
@@ -55,6 +61,7 @@ namespace player {
         //解码视频
         void DecodeVideo();
 
+        void ClearQueues();
     private:
         PacketQueue *audioPacketQueue_;
         FrameQueue *audioFrameQueue_;
@@ -69,6 +76,8 @@ namespace player {
         std::thread readThread_;//读取线程
         std::thread videoThread_;
         std::thread audioThread_;
+        std::mutex eofMutex_;
+        std::condition_variable eofCondition_;
 
         volatile bool abortRequest = false;
         volatile bool endOfStream_ = false;

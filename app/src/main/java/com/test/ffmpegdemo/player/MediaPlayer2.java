@@ -60,6 +60,9 @@ public class MediaPlayer2 extends NativeObjectRef {
         return nativeAddClip(mediaClip);
     }
 
+    /**
+     * 播放
+     */
     public void play() {
         if(!mMediaSourceSet){
             if(mOnPlayStateListener != null){
@@ -69,13 +72,20 @@ public class MediaPlayer2 extends NativeObjectRef {
         nativePlay();
     }
 
+    /**
+     * 暂停播放
+     */
     public void pause() {
 
     }
 
+    /**
+     * 停止播放
+     */
     public void stop() {
-
+        nativeStop();
     }
+
 
     public void release() {
 
@@ -92,6 +102,7 @@ public class MediaPlayer2 extends NativeObjectRef {
     private native int nativeAddClip(MediaClip mediaClip);
     private native void nativePrepare(Options options);
     private native void nativePlay();
+    private native void nativeStop();
 
     private native boolean nativeIsPrepare();
 

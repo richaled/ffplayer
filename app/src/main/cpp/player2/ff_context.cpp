@@ -127,6 +127,26 @@ namespace player {
         return 0;
     }
 
+    void FFContext::Close() {
+        if(HasAudio()){
+            avcodec_close(audioCodecContext_);
+            avcodec_free_context(&audioCodecContext_);
+        }
+
+        if(HasVideo()){
+            avcodec_close(videoCodecContext_);
+            avcodec_free_context(&videoCodecContext_);
+        }
+        avformat_close_input(&formatContext_);
+        avformat_free_context(formatContext_);
+        formatContext_ = nullptr;
+
+        width_ = 0;
+        height_ = 0;
+        frameRotation_ = 0;
+
+    }
+
     /*static int av_format_interrupt_cb(void *data) {
         AVPlayContext* context = data;
         if (context->timeout_start == 0) {

@@ -73,10 +73,17 @@ public class MediaPlayer2 extends NativeObjectRef {
     }
 
     /**
+     * 继续播放
+     */
+    public void resume(){
+        nativeResume();
+    }
+
+    /**
      * 暂停播放
      */
     public void pause() {
-
+        nativePause();
     }
 
     /**
@@ -103,6 +110,8 @@ public class MediaPlayer2 extends NativeObjectRef {
     private native void nativePrepare(Options options);
     private native void nativePlay();
     private native void nativeStop();
+    private native void nativeResume();
+    private native void nativePause();
 
     private native boolean nativeIsPrepare();
 

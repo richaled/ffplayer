@@ -30,6 +30,10 @@ namespace player {
 
         void Stop();
 
+        void Resume();
+
+        void Pause();
+
         PlayStatus GetPlayStaus() const{
             return playStatus_;
         }
@@ -82,10 +86,10 @@ namespace player {
         volatile bool abortRequest = false;
         volatile bool endOfStream_ = false;
 
-        PlayStatus playStatus_ = PlayStatus ::UNINIT;
         int c = 0;
         bool isHardWare_ = false;
     public:
+        PlayStatus playStatus_ = PlayStatus ::UNINIT;
         FramePool *videoFramePool_;
         AVFrame *videoFrame_ = nullptr;
         Clock *videoClock_;

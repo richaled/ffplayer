@@ -67,9 +67,9 @@ namespace player {
             return isPrepare_;
         };
 
-        int Play();
-
         void Resume();
+
+        void Pause();
 
         void Stop();
 
@@ -97,6 +97,8 @@ namespace player {
         void OnDestoryWindow();
         void OnPlayStart(const std::shared_ptr<Event> &event);
         void OnStop();
+        void OnResume();
+        void OnPause();
         bool CreateGL();
         void OnRenderVideoFrame();
         int DrawFrame();

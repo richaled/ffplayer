@@ -69,8 +69,16 @@ namespace player {
                 OnRenderVideoFrame();
                 break;
             }
-            case kStop:{
+            case kPlayerStop:{
                 OnStop();
+                break;
+            }
+            case kPlayerResume:{
+                OnResume();
+                break;
+            }
+            case kPlayerPause:{
+                OnPause();
                 break;
             }
         }
@@ -369,7 +377,7 @@ namespace player {
     }
 
     void Player::Stop() {
-        NewEvent(kStop, shared_from_this(), dispatcher_)
+        NewEvent(kPlayerStop, shared_from_this(), dispatcher_)
                 ->Post();
     }
 
@@ -380,6 +388,36 @@ namespace player {
         frameWidth_ = 0;
         frameHeight_ = 0;
         playerState_ = kStop;
+    }
+
+    void Player::Resume() {
+        NewEvent(kPlayerResume, shared_from_this(), dispatcher_)
+                ->Post();
+    }
+
+    void Player::OnResume() {
+        if(!currentClip_.IsValid()){
+            LOGE("resume clip is invalid !!!");
+            return;
+        }
+        if(playImpl_->playStatus_ == PlayStatus::PAUSED){
+            playImpl_->Resume();
+        }
+        playerState_ = kResume;
+        NewEvent(kRenderVideoFrame, shared_from_this(), dispatcher_)
+                ->Post();
+    }
+
+    void Player::Pause() {
+        NewEvent(kPlayerPause, shared_from_this(), dispatcher_)
+                ->Post();
+    }
+
+    void Player::OnPause() {
+        if(playImpl_->playStatus_ == PlayStatus::PLAYING){
+            playImpl_->Pause();
+        }
+        playerState_ = kPause;
     }
 
     EGLSurface Player::GetPlatformSurface(void *window) {

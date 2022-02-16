@@ -164,6 +164,14 @@ namespace player {
         return video_frame_pts;
     }
 
+    void PlayImpl::Resume() {
+        playStatus_ = PLAYING;
+    }
+
+    void PlayImpl::Pause() {
+        playStatus_ = PAUSED;
+    }
+
     void PlayImpl::Stop() {
         if(playStatus_ == IDEL){
             return;

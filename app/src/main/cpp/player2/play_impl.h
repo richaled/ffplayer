@@ -24,7 +24,7 @@ namespace player {
     public:
         PlayImpl();
 
-        int Init(const std::string &url, const test::Options &options);
+        int Init(const test::MediaClip &meidaClip, const test::Options &options);
 
         void Start();
 
@@ -44,6 +44,9 @@ namespace player {
 
         bool IsHardWare() const {
             return isHardWare_;
+        }
+        int GetFrameRotate() const {
+            return ffContext_->frameRotation_;
         }
 
     private:
@@ -73,7 +76,6 @@ namespace player {
         PlayStatus playStatus_ = PlayStatus ::UNINIT;
         int c = 0;
         bool isHardWare_ = false;
-
     public:
         FramePool *videoFramePool_;
         AVFrame *videoFrame_ = nullptr;

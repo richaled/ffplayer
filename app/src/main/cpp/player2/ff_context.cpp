@@ -44,6 +44,14 @@ namespace player {
             trackFlags |= AUDIO_FLAG;
         }
         duration_ = formatContext_->duration / AV_TIME_BASE * 1000;
+        AVStream *vStream = formatContext_->streams[videoIndex_];
+        AVDictionaryEntry *m = nullptr;
+        m = av_dict_get(vStream->metadata, "rotate", m, AV_DICT_MATCH_CASE);
+        if(m != nullptr){
+            frameRotation_ = atoi(m->value);
+            LOGI("frame rotate : %d",frameRotation_);
+        }
+
         //如果有音频
         if (HasAudio()) {
             ret = InitAudioCodec();

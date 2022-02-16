@@ -3,6 +3,7 @@
 #include <player2/opengl/gl_info.h>
 #include <unistd.h>
 #include <glm/ext.hpp>
+#include <player2/opengl/source_scale.h>
 #include "player.h"
 #include "play_impl.h"
 #include "rotate_coordinate.h"
@@ -97,7 +98,7 @@ namespace player {
         if (!mediaInfo_.IsEmpty()) {
             currentClip_ = mediaInfo_.clips[clipIndex];
 
-            int ret = playImpl_->Init(currentClip_.file_name, options_);
+            int ret = playImpl_->Init(currentClip_, options_);
             //notify prepare callback
             if(ret != 0){
                 LOGE("prepare init fail");
@@ -109,17 +110,6 @@ namespace player {
         }
 //        lock.unlock();
 //        conditionVariable_.notify_all();
-    }
-
-    int Player::InitRender() {
-        bool ret = CreateGL();
-        if (!ret) {
-            LOGE("create egl core error !!!");
-            //callback todo
-        }
-        videoRender_ = std::make_shared<OpenglRender>(0, 0, DEFAULT_VERTEX_SHADER,
-                                                      DEFAULT_FRAGMENT_SHADER);
-        return 0;
     }
 
     void Player::CreateSurfaceWindow(void *window) {
@@ -144,6 +134,7 @@ namespace player {
     void Player::OnDestoryWindow() {
         ReleaseSurface(window_);
         window_ = nullptr;
+        windowCreated_ = false;
         surfaceWidth_ = 0;
         surfaceHeight_ = 0;
     }
@@ -171,9 +162,10 @@ namespace player {
             }
         }
         windowCreated_ = true;
+        vertexCoordinate = GetDefaultVertexCoord();
         //create render
         if (!videoRender_) {
-            videoRender_ = std::make_shared<OpenglRender>(0, 0, DEFAULT_VERTEX_SHADER,
+            videoRender_ = std::make_shared<OpenglRender>(surfaceWidth_, surfaceHeight_, DEFAULT_VERTEX_SHADER,
                                                           DEFAULT_FRAGMENT_SHADER);
         }
         //create textures
@@ -206,11 +198,10 @@ namespace player {
             LOGE("media clip is invalid");
             return;
         }
-//        std::unique_lock<std::mutex> lock(mutex_);
-//        conditionVariable_.wait(lock, [this](){ return IsPrepare(); });
-//        lock.unlock();
-//        THREAD_ID
+        std::unique_lock<std::mutex> lock(mutex_);
+        conditionVariable_.wait(lock, [this](){ return IsPrepare(); });
         LOGI("play start");
+        lock.unlock();
         playImpl_->Start();
         //渲染每一帧
         NewEvent(kRenderVideoFrame, shared_from_this(), dispatcher_)
@@ -282,7 +273,7 @@ namespace player {
 //        } else {
             masterClock = clock_get(playImpl_->videoClock_);
 //        }
-//        LOGI("videoFramePts : %ld， pts : %ld,masterClock = %ld" ,videoFramePts, playImpl_->videoFrame_->pts,masterClock);
+        LOGI("videoFramePts : %ld， pts : %ld,masterClock = %ld" ,videoFramePts, playImpl_->videoFrame_->pts,masterClock);
 
         //做音视频同步
         int64_t diff = videoFramePts - masterClock;
@@ -320,14 +311,15 @@ namespace player {
                 yuvRender_ = std::make_shared<YuvRender>();
             }
             if (surfaceWidth_ != 0 && surfaceHeight_ != 0) {
-
+                //计算顶点
+                vertexCoordinate = GetScaleVertexCoord(frameWidth_,frameHeight_,surfaceWidth_,surfaceHeight_);
             }
         }
 
         if (playImpl_->IsHardWare()) {
 
         } else {
-            auto texture_coordinate = rotate_soft_decode_media_encode_coordinate(0);
+            auto texture_coordinate = rotate_soft_decode_media_encode_coordinate(playImpl_->GetFrameRotate());
             auto ratio = playImpl_->videoFrame_->width * 1.F / playImpl_->videoFrame_->linesize[0];
             glm::mat4 scale_matrix = glm::mat4(ratio);
             drawTextureId_ = yuvRender_->DrawFrame(playImpl_->videoFrame_,glm::value_ptr(scale_matrix),
@@ -336,8 +328,6 @@ namespace player {
 //            LOGI("render currentTime : %ld , texture : %d" ,currentTime,drawTextureId_);
         }
 
-        //释放frame
-//        ReleaseFrame();
         if (drawTextureId_ == -1) {
             return;
         }
@@ -368,7 +358,7 @@ namespace player {
         //回调上层, 可以拿到外部处理的纹理进行处理
 //        int
 //        LOGI("process image");
-        videoRender_->ProcessImage(textureId,DEFAULT_VERTEX_COORDINATE,DEFAULT_TEXTURE_COORDINATE);
+        videoRender_->ProcessImage(textureId,vertexCoordinate,DEFAULT_TEXTURE_COORDINATE);
         if (!eglCore_->SwapBuffers(renderSurface_)) {
             LOGE("eglSwapBuffers error: %d", eglGetError());
         }

@@ -17,6 +17,13 @@ namespace player{
             1.0f, 0.0f         // TexCoord 3
     };
 
+    GLfloat texture_matrix[] = {
+            1.0f,0.0f,0.0f,0.0f,
+            0.0f,1.0f,0.0f,0.0f,
+            0.0f,0.0f,1.0f,0.0f,
+            0.0f,0.0f,0.0f,1.0f
+    };
+
     OpenglRender::OpenglRender(const int width, const int height, const char *vertex, const char *fragment)
     :width_(width),height_(height){
         if(vertex && fragment){
@@ -48,9 +55,6 @@ namespace player{
     }
 
     void OpenglRender::ProcessImage(GLuint texture_id, const GLfloat *vertex_coordinate, const GLfloat *texture_coordinate) {
-        float texture_matrix[4 * 4];
-        memset(reinterpret_cast<void*>(texture_matrix), 0, 16*sizeof(float));
-        texture_matrix[0] = texture_matrix[5] = texture_matrix[10] = texture_matrix[15] = 1.0f;
         ProcessImage(texture_id, vertex_coordinate, texture_coordinate, texture_matrix);
     }
 

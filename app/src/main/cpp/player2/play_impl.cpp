@@ -15,7 +15,7 @@ namespace player {
 #endif
     }
 
-    int PlayImpl::Init(const std::string &url,const test::Options &options) {
+    int PlayImpl::Init(const test::MediaClip &meidaClip,const test::Options &options) {
         audioPacketQueue_ = PacketQueueCreate(40);
         audioFrameQueue_ = FrameQueueCreate(40);
         videoPacketQueue_ = PacketQueueCreate(40);
@@ -29,7 +29,7 @@ namespace player {
         isHardWare_ = OptionsGet(options,test::OptionKey::kEnableHardware, false);
         LOGI("hardware enable : %d",isHardWare_);
         ffContext_->InitFFmpeg();
-        int ret = ffContext_->InitAvContext(url.c_str(), isHardWare_);
+        int ret = ffContext_->InitAvContext(meidaClip.file_name.c_str(), isHardWare_);
         if(ret != 0){
             LOGE("init avcontext fail");
             return ret;
@@ -43,7 +43,6 @@ namespace player {
             ReadThread();
         };
         readThread_ = std::thread(readFunc);
-
         //开启线程
         if(ffContext_->HasAudio()){
             auto func = [&](){
@@ -103,8 +102,6 @@ namespace player {
             }
         }
     }
-
-
 
     void PlayImpl::DecodeVideo() {
         AVFrame* frame = GetFrameFromPool(videoFramePool_);

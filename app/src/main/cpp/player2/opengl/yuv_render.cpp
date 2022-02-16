@@ -125,9 +125,9 @@ namespace player{
         }
         glBindFramebuffer(GL_FRAMEBUFFER,frameBufferId_);
         //如果宽度不是16的倍数
-//        if (width % 16 != 0) {
-//            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-//        }
+        if (width % 16 != 0) {
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        }
         glClear(GL_COLOR_BUFFER_BIT);
         glClearColor(0.0f,0.0f,0.0f,1.0f);
         glViewport(0,0,width,height);
@@ -137,17 +137,15 @@ namespace player{
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, textures_[0]);
                 glUniform1i(uniformSamplers_[0], 0);
-                glTexImage2D(GL_TEXTURE_2D,0,GL_LUMINANCE,frame->linesize[0],height,0, GL_LUMINANCE, GL_UNSIGNED_BYTE, frame->data[0]);
-
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, frame->linesize[0], frame->height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, frame->data[0]);
                 glActiveTexture(GL_TEXTURE1);
                 glBindTexture(GL_TEXTURE_2D, textures_[1]);
-                glUniform1i(uniformSamplers_[1], 0);
-                glTexImage2D(GL_TEXTURE_2D,0,GL_LUMINANCE,frame->linesize[1],height/2,0, GL_LUMINANCE, GL_UNSIGNED_BYTE, frame->data[1]);
-
+                glUniform1i(uniformSamplers_[1], 1);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, frame->linesize[1], frame->height / 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, frame->data[1]);
                 glActiveTexture(GL_TEXTURE2);
                 glBindTexture(GL_TEXTURE_2D, textures_[2]);
-                glUniform1i(uniformSamplers_[2], 0);
-                glTexImage2D(GL_TEXTURE_2D,0,GL_LUMINANCE,frame->linesize[2],height/2,0, GL_LUMINANCE, GL_UNSIGNED_BYTE, frame->data[2]);
+                glUniform1i(uniformSamplers_[2], 2);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, frame->linesize[2], frame->height / 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, frame->data[2]);
 
                 break;
             }
@@ -155,13 +153,11 @@ namespace player{
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, textures_[0]);
                 glUniform1i(uniformSamplers_[0], 0);
-                glTexImage2D(GL_TEXTURE_2D,0,GL_LUMINANCE,frame->linesize[0],height,0, GL_LUMINANCE, GL_UNSIGNED_BYTE, frame->data[0]);
-
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, frame->linesize[0], frame->height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, frame->data[0]);
                 glActiveTexture(GL_TEXTURE1);
                 glBindTexture(GL_TEXTURE_2D, textures_[1]);
-                glUniform1i(uniformSamplers_[1], 0);
-                glTexImage2D(GL_TEXTURE_2D,0,GL_LUMINANCE,frame->linesize[1],height/2,0, GL_LUMINANCE, GL_UNSIGNED_BYTE, frame->data[1]);
-
+                glUniform1i(uniformSamplers_[1], 1);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, frame->linesize[1] / 2, frame->height / 2, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, frame->data[1]);
                 break;
             }
             default:

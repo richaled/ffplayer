@@ -25,13 +25,13 @@ namespace player {
 
     int PacketPutInQueue(PacketQueue *queue, AVPacket *packet) {
         std::unique_lock<std::mutex> lock(queue->mutex);
-        /*if(queue->max_duration > 0 && queue->duration + packet->duration > queue->max_duration){
+        if(queue->max_duration > 0 && queue->duration + packet->duration > queue->max_duration){
             //等待
             queue->cond.wait(lock);
-        }*/
-        if (queue->count >= 1){
-            queue->cond.wait(lock);
         }
+       /* if (queue->count >= 1){
+            queue->cond.wait(lock);
+        }*/
         queue->duration += packet->duration;
         queue->packets[queue->write_index] = packet;
 //        LOGE("queue write index %d,%p",queue->write_index,packet);

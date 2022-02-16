@@ -85,7 +85,7 @@ namespace player {
 
         int width_;
         int height_;
-        int frameRotation_;
+        int frameRotation_ = 0;
 
 
     };

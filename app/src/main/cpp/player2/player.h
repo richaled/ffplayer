@@ -97,7 +97,6 @@ namespace player {
         void OnDestoryWindow();
         void OnPlayStart(const std::shared_ptr<Event> &event);
         bool CreateGL();
-        int InitRender();
         void OnRenderVideoFrame();
         int DrawFrame();
         void CreateFrameBufferAndRender();
@@ -120,11 +119,13 @@ namespace player {
         std::shared_ptr<YuvRender> yuvRender_;
         std::shared_ptr<FrameBufferRender> frameBufferRender_;
         GLuint drawTextureId_;
-        void *window_;
+        void *window_ = nullptr;
         Options options_;
 
         std::mutex mutex_;
         std::condition_variable conditionVariable_;
+        GLfloat *vertexCoordinate = nullptr;
+
     };
 
 }

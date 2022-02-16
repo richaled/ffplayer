@@ -24,21 +24,17 @@ namespace player {
     }
 
     int PacketPutInQueue(PacketQueue *queue, AVPacket *packet) {
-        THREAD_ID
         std::unique_lock<std::mutex> lock(queue->mutex);
         /*if(queue->max_duration > 0 && queue->duration + packet->duration > queue->max_duration){
             //等待
             queue->cond.wait(lock);
-            LOGI("queue wait");
         }*/
-//        LOGI("write count : %d" ,queue->count);
         if (queue->count >= 1){
-            LOGI("packet queue write wait");
             queue->cond.wait(lock);
         }
         queue->duration += packet->duration;
         queue->packets[queue->write_index] = packet;
-        LOGE("queue write index %d,%p",queue->write_index,packet);
+//        LOGE("queue write index %d,%p",queue->write_index,packet);
         queue->write_index = (queue->write_index + 1) % queue->size;
         queue->count++;
         queue->total_bytes += packet->size;
@@ -47,7 +43,7 @@ namespace player {
     }
 
     AVPacket *GetPacketFromQueue(PacketQueue *queue){
-        THREAD_ID
+//        THREAD_ID
         std::unique_lock<std::mutex> lock(queue->mutex);
         if(queue->count == 0){
             LOGI("packet queue get empty");
@@ -55,7 +51,6 @@ namespace player {
             return nullptr;
         }
         AVPacket *packet = queue->packets[queue->read_index];
-        LOGI("queue read index %d,%p",queue->read_index,packet);
         queue->read_index = (queue->read_index + 1) % queue->size;
         queue->count--;
         queue->duration -= packet->duration;
@@ -92,7 +87,6 @@ namespace player {
         // step5 当前指针位置移动到后半部分
         pool->index = pool->size;
         pool->size *= 2;
-//        LOGI("packet pool double size. new size ==> %d", pool->size);
     }
 
     AVPacket* GetPacketFromPool(PacketPool *pool) {
@@ -180,8 +174,6 @@ namespace player {
     }
 
     AVFrame* GetFrameQueue(FrameQueue *queue){
-        THREAD_ID
-        LOGI("get frame count : %d",queue->count);
         std::unique_lock<std::mutex> lock(queue->mutex);
         if (queue->count == 0) {
 //            queue->cond.notify_all();
@@ -189,7 +181,6 @@ namespace player {
             return nullptr;
         }
         AVFrame* frame = queue->frames[queue->read_index];
-        LOGI("get frame queue pts : %ld,read index :%d",frame->pts ,queue->read_index);
         queue->read_index = (queue->read_index + 1) % queue->size;
         queue->count--;
         queue->cond.notify_all();
@@ -198,14 +189,11 @@ namespace player {
     }
 
     int PutFrameQueue(FrameQueue *queue, AVFrame *frame){
-        METHOD
         std::unique_lock<std::mutex> lock(queue->mutex);
-//        LOGE("queue count same queue size ,count : %d, size : %d",queue->count,queue->size);
         while(queue->count == queue->size){
 //            LOGE("queue count same queue size ,%d",queue->count);
             queue->cond.wait(lock);
         }
-        LOGI("put frame queue pts : %ld,write index :%d",frame->pts,queue->write_index);
         queue->frames[queue->write_index] = frame;
         queue->write_index = (queue->write_index + 1) % queue->size;
         queue->count++;

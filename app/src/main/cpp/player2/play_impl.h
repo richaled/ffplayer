@@ -52,8 +52,6 @@ namespace player {
         //解码视频
         void DecodeVideo();
 
-        void ReadTest();
-
     private:
         PacketQueue *audioPacketQueue_;
         FrameQueue *audioFrameQueue_;

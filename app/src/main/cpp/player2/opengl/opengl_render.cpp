@@ -55,7 +55,7 @@ namespace player{
     }
 
     void OpenglRender::ProcessImage(GLuint textureId, const GLfloat* vertex_coordinate, const GLfloat* texture_coordinate, GLfloat* texture_matrix){
-        METHOD
+//        METHOD
         if(program_ == 0){
             LOGE("program is empty");
             return;

@@ -16,11 +16,11 @@ namespace player {
         if (!dispatcher_) {
             dispatcher_ = std::make_shared<EventDispatcher>();
         }
-        LOGI("dispatcher start");
+//        LOGI("dispatcher start");
         if (!dispatcher_->IsRunning()) {
             dispatcher_->Run();
         }
-        LOGI("dispatcher end");
+//        LOGI("dispatcher end");
     }
 
     Player::~Player(){
@@ -49,7 +49,6 @@ namespace player {
         uint32_t kEvent = event->What();
         switch (kEvent) {
             case kPlayerPrepare: {
-                LOGI("play prepare");
                 OnPrepare(event);
                 break;
             }
@@ -73,7 +72,7 @@ namespace player {
     }
 
     bool Player::CreateGL() {
-        LOGI("create opengl");
+//        LOGI("create opengl");
         //创建opengl环境
         eglCore_ = std::make_shared<EglCore>();
         return eglCore_->Init();
@@ -81,13 +80,13 @@ namespace player {
 
     void Player::OnPrepare(const std::shared_ptr<Event> &event) {
 
-        std::unique_lock<std::mutex> lock(mutex_);
+//        std::unique_lock<std::mutex> lock(mutex_);
         int clipIndex = -1;
         event->GetDataCopy("kPlayerPrepare", clipIndex);
-        LOGI("current clipIndex : %d", clipIndex);
+//        LOGI("current clipIndex : %d", clipIndex);
         if (clipIndex < 0) {
             LOGE("media clip is invalid");
-            lock.unlock();
+//            lock.unlock();
             return;
         }
         if (!playImpl_) {
@@ -106,10 +105,10 @@ namespace player {
 //            usleep(WAIT_FRAME_SLEEP_US * 100);
             isPrepare_ = true;
         } else {
-            LOGI("media info is empty");
+//            LOGI("media info is empty");
         }
-        lock.unlock();
-        conditionVariable_.notify_all();
+//        lock.unlock();
+//        conditionVariable_.notify_all();
     }
 
     int Player::InitRender() {
@@ -135,7 +134,7 @@ namespace player {
     }
 
     void Player::SurfaceWindowSizeChange(const int width, const int height) {
-        METHOD
+//        METHOD
         surfaceWidth_ = width;
         surfaceHeight_ = height;
         if(videoRender_ != nullptr){
@@ -150,7 +149,7 @@ namespace player {
     }
 
     void Player::OnCreateWindow(const std::shared_ptr<Event> &event) {
-        THREAD_ID
+//        THREAD_ID
         void *window;
         event->GetDataCopy("kEGLWindowCreate", window);
         window_ = window;
@@ -192,14 +191,11 @@ namespace player {
             LOGE("window not created !!");
             return -1;
         }
-        LOGI("start is prepare : %d",IsPrepare());
         if(!IsPrepare()){
             NewEvent(kPlayerPrepare, shared_from_this(), dispatcher_)
                     ->SetData("kPlayerPrepare", 0)
                     ->Post();
         }
-        LOGI("start play start : %d",IsPrepare());
-        METHOD
         NewEvent(kPlayerStart, shared_from_this(), dispatcher_)
                 ->Post();
         return 0;
@@ -210,15 +206,15 @@ namespace player {
             LOGE("media clip is invalid");
             return;
         }
-        LOGI("play start %d",IsPrepare());
-        std::unique_lock<std::mutex> lock(mutex_);
-        conditionVariable_.wait(lock, [this](){ return IsPrepare(); });
-        lock.unlock();
-        THREAD_ID
+//        std::unique_lock<std::mutex> lock(mutex_);
+//        conditionVariable_.wait(lock, [this](){ return IsPrepare(); });
+//        lock.unlock();
+//        THREAD_ID
+        LOGI("play start");
         playImpl_->Start();
         //渲染每一帧
-//        NewEvent(kRenderVideoFrame, shared_from_this(), dispatcher_)
-//                ->Post();
+        NewEvent(kRenderVideoFrame, shared_from_this(), dispatcher_)
+                ->Post();
     }
 
     void Player::OnRenderVideoFrame() {
@@ -227,7 +223,6 @@ namespace player {
             //绘制
 
         }
-        THREAD_ID
         if (playImpl_->GetPlayStaus() == PlayStatus::PLAYING) {
             //继续绘制还是等待
             int ret = DrawFrame();
@@ -236,7 +231,7 @@ namespace player {
                 NewEvent(kRenderVideoFrame, shared_from_this(), dispatcher_)
                         ->Post();
             } else if (ret == -1) {
-                LOGI("render video frame delay");
+//                LOGI("render video frame delay");
                 usleep(WAIT_FRAME_SLEEP_US);
                 NewEvent(kRenderVideoFrame, shared_from_this(), dispatcher_)
                         ->Post();
@@ -256,7 +251,7 @@ namespace player {
             LOGE("play impl is null !!!");
             return -2;
         }
-        LOGI("draw frame current time %lld",GetSysCurrentTime());
+//        LOGI("draw frame current time %lld",GetSysCurrentTime());
 //        usleep(WAIT_FRAME_SLEEP_US);
 //        return 0;
         if (!eglCore_->MakeCurrent(renderSurface_)) {
@@ -268,15 +263,15 @@ namespace player {
             playImpl_->videoFrame_ = playImpl_->GetFromFrameQueue();
         }
         if(playImpl_->videoFrame_ == nullptr){
-            LOGI("get queue frame is null");
+//            LOGI("get queue frame is null");
             return -1;
         }
         int64_t videoFramePts = playImpl_->GetVideoFramePts();
-        LOGI("videoFramePts : %ld， pts : %ld" ,videoFramePts, playImpl_->videoFrame_->pts);
+//        LOGI("videoFramePts : %ld， pts : %ld" ,videoFramePts, playImpl_->videoFrame_->pts);
         usleep(WAIT_FRAME_SLEEP_US);
-//        CreateFrameBufferAndRender();
-//        ReleaseFrame();
-//        return 0;
+        CreateFrameBufferAndRender();
+        ReleaseFrame();
+        return 0;
 
         //
 //        int64_t videoFramePts = playImpl_->GetVideoFramePts();
@@ -287,7 +282,7 @@ namespace player {
 //        } else {
             masterClock = clock_get(playImpl_->videoClock_);
 //        }
-        LOGI("videoFramePts : %ld， pts : %ld,masterClock = %ld" ,videoFramePts, playImpl_->videoFrame_->pts,masterClock);
+//        LOGI("videoFramePts : %ld， pts : %ld,masterClock = %ld" ,videoFramePts, playImpl_->videoFrame_->pts,masterClock);
 
         //做音视频同步
         int64_t diff = videoFramePts - masterClock;
@@ -338,16 +333,16 @@ namespace player {
             drawTextureId_ = yuvRender_->DrawFrame(playImpl_->videoFrame_,glm::value_ptr(scale_matrix),
                                                    DEFAULT_VERTEX_COORDINATE, texture_coordinate);
             auto currentTime = playImpl_->GetVideoFramePts();
-            LOGI("render currentTime : %ld , texture : %d" ,currentTime,drawTextureId_);
+//            LOGI("render currentTime : %ld , texture : %d" ,currentTime,drawTextureId_);
         }
 
         //释放frame
 //        ReleaseFrame();
-//        if (drawTextureId_ == -1) {
-//            return;
-//        }
+        if (drawTextureId_ == -1) {
+            return;
+        }
         //如果有图像处理
-//        Draw(drawTextureId_);
+        Draw(drawTextureId_);
     }
 
     void Player::ReleaseFrame() {
@@ -356,7 +351,7 @@ namespace player {
     }
 
     void Player::Draw(int textureId) {
-        METHOD
+//        METHOD
         if (videoRender_ == nullptr) {
             auto mThreadId_ = std::this_thread::get_id();
             LOGE("video render null !! %d",mThreadId_);
@@ -372,11 +367,11 @@ namespace player {
         }
         //回调上层, 可以拿到外部处理的纹理进行处理
 //        int
-        LOGI("process image");
-//        videoRender_->ProcessImage(textureId,DEFAULT_VERTEX_COORDINATE,DEFAULT_TEXTURE_COORDINATE);
-//        if (!eglCore_->SwapBuffers(renderSurface_)) {
-//            LOGE("eglSwapBuffers error: %d", eglGetError());
-//        }
+//        LOGI("process image");
+        videoRender_->ProcessImage(textureId,DEFAULT_VERTEX_COORDINATE,DEFAULT_TEXTURE_COORDINATE);
+        if (!eglCore_->SwapBuffers(renderSurface_)) {
+            LOGE("eglSwapBuffers error: %d", eglGetError());
+        }
     }
 
     EGLSurface Player::GetPlatformSurface(void *window) {

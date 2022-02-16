@@ -39,7 +39,6 @@ namespace player {
     }
 
     void PlayImpl::Start() {
-        METHOD
         auto readFunc = [&](){
             ReadThread();
         };
@@ -56,8 +55,7 @@ namespace player {
         if(ffContext_->HasVideo()){
             auto videoFunc = [&](){
                 //decode
-//                DecodeVideo();
-//                ReadTest();
+                DecodeVideo();
             };
             videoThread_ = std::thread(videoFunc);
         }
@@ -65,7 +63,6 @@ namespace player {
     }
 
     void PlayImpl::ReadThread() {
-        THREAD_ID
         AVPacket *packet = nullptr;
         while (!abortRequest){
             if(audioPacketQueue_->total_bytes + videoPacketQueue_->total_bytes >= DEFAULT_BUFFER_SIZE){
@@ -110,7 +107,6 @@ namespace player {
 
 
     void PlayImpl::DecodeVideo() {
-        THREAD_ID
         AVFrame* frame = GetFrameFromPool(videoFramePool_);
         int ret = 0;
         while (!abortRequest){
@@ -155,22 +151,6 @@ namespace player {
                 //回调错误 todo
                 LOGE("receive error %s",av_err2str(ret));
                 break;
-            }
-        }
-    }
-
-    void PlayImpl::ReadTest() {
-        while (true){
-            AVPacket *packet = GetPacketFromQueue(videoPacketQueue_);
-            if(packet == nullptr){
-                LOGE("read packet empty");
-                usleep(10000);
-            } else{
-                LOGI("read packet :%ld,count %d",packet->duration,c++);
-                if(c > 30){
-                    LOGE("discard packet");
-                    break;
-                }
             }
         }
     }

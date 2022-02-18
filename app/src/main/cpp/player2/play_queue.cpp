@@ -6,11 +6,9 @@ namespace player {
     void CreatePacketQueue(PacketQueue &queue, unsigned int size){
         queue.size = size;
         queue.max_duration = 8000000;
-//        queue.packets.resize(size);
         queue.packets = (AVPacket **) malloc(sizeof(AVPacket *) * size);
-//        for (int i = 0; i < size; ++i) {
-//            queue.packets[i] = av_packet_alloc();
-//        }
+        queue.flush_packet.duration = 0;
+        queue.flush_packet.size = 0;
     }
 
     void PacketQueueFree(PacketQueue& queue){
@@ -21,13 +19,13 @@ namespace player {
     int PutPacketInQueue(PacketQueue &queue, AVPacket *packet){
         METHOD
         std::unique_lock<std::mutex> lock(queue.mutex);
-        if(queue.max_duration > 0 && queue.duration + packet->duration > queue.max_duration){
-            //等待
+//        if(queue.max_duration > 0 && queue.duration + packet->duration > queue.max_duration){
+//            queue.cond.wait(lock);
+//        }
+        if (queue.count >= queue.size){
+            LOGI("queue put full");
             queue.cond.wait(lock);
         }
-        /*if (queue.count >= 1){
-            queue.cond.wait(lock);
-        }*/
         queue.duration += packet->duration;
         queue.packets[queue.write_index] = packet;
         LOGE("queue write index %d,%p",queue.write_index,packet);
@@ -180,13 +178,15 @@ namespace player {
     AVFrame* GetFrameQueue(FrameQueue &queue){
         std::unique_lock<std::mutex> lock(queue.mutex);
         if (queue.count == 0) {
-//            queue.cond.notify_all();
+            queue.cond.notify_all();
             lock.unlock();
             return nullptr;
         }
+        LOGI("get frame queue size : %d, count : %d",queue.size,queue.count);
         AVFrame* frame = queue.frames[queue.read_index];
         queue.read_index = (queue.read_index + 1) % queue.size;
         queue.count--;
+        LOGI("frame queue count : %d",queue.count);
         queue.cond.notify_all();
         lock.unlock();
         return frame;
@@ -194,6 +194,7 @@ namespace player {
 
     int PutFrameQueue(FrameQueue &queue, AVFrame *frame){
         std::unique_lock<std::mutex> lock(queue.mutex);
+        LOGI("put frame queue size : %d, count : %d",queue.size,queue.count);
         while(queue.count == queue.size){
 //            LOGE("queue count same queue size ,%d",queue.count);
             queue.cond.wait(lock);

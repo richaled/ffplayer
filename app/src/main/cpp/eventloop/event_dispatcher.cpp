@@ -90,6 +90,14 @@ namespace test {
         }
     }
 
+    void EventDispatcher::Flush() {
+        std::lock_guard<std::mutex> lock(mutex_);
+        for(auto iter = events_.begin(); iter != events_.end();){
+            events_.erase(iter ++);
+        }
+        events_.clear();
+    }
+
     void EventDispatcher::OnQuitEvent(int sock, short what, void *arg) {
 
     }

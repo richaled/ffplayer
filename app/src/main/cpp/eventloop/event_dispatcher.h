@@ -28,7 +28,7 @@ namespace test {
 
         void Register(const std::shared_ptr<Event> &event);
         void UnRegister(const std::shared_ptr<Event> &event);
-
+        void Flush();
     private:
         using BreakEventKey = std::pair<EventDispatcher *, struct event *>;
         static void OnLoopEvent(evutil_socket_t sock, short what, void *arg);

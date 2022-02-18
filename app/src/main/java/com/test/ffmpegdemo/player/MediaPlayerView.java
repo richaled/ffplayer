@@ -152,4 +152,9 @@ public class MediaPlayerView extends FrameLayout implements SurfaceHolder.Callba
         }
         imageView.setVisibility(GONE);
     }
+
+    public void pauseView(){
+        imageView.setVisibility(VISIBLE);
+        imageView.setImageResource(R.drawable.ic_play);
+    }
 }

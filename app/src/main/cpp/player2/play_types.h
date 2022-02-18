@@ -2,8 +2,6 @@
 
 #include "mutex"
 #include "thread"
-#include "list"
-#include "vector"
 
 extern "C"{
     #include <libavcodec/avcodec.h>
@@ -22,7 +20,6 @@ namespace player{
         bool abort = false;
 
         AVPacket **packets = nullptr;
-//        std::vector<AVPacket*> packets;
         int read_index = 0;
         int write_index = 0;
         int count = 0;

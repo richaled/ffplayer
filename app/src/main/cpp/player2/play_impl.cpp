@@ -17,13 +17,13 @@ namespace player {
 
     int PlayImpl::Init(const test::MediaClip &meidaClip,const test::Options &options) {
 
-        CreateFrameQueue(videoFrameQueue_,40);
-        CreateFrameQueue(audioFrameQueue_,60);
+        CreateFrameQueue(videoFrameQueue_,4);
+        CreateFrameQueue(audioFrameQueue_,6);
         CreatePacketQueue(videoPacketQueue_,40);
         CreatePacketQueue(audioPacketQueue_,40);
 
         THREAD_ID
-        CreatePacketPool(packetPool_,20);
+        CreatePacketPool(packetPool_,50);
         CreateFramePool(videoFramePool_,8);
         CreateFramePool(audioFramePool_,8);
 
@@ -79,17 +79,11 @@ namespace player {
     void PlayImpl::ReadThread() {
         AVPacket *packet = nullptr;
         while (!abortRequest){
-           /* {
-            std::unique_lock<std::mutex> lock(videoPacketQueue_->mutex);
-            LOGI("add video packet in queue");
-//            usleep(30000);
-            lock.unlock();
-            }
-            continue;*/
 
+            //向前移动的seek，晴空万里缓存
             if(seekStatus_ == 1){
                 LOGI("read seeking ----");
-                ClearFrameQueue();
+//                ClearFrameQueue();
                 seekStatus_ = 2;
                 int seek_ret = av_seek_frame(ffContext_->formatContext_, -1, (int64_t) (seekToTime_ * AV_TIME_BASE / 1000),
                                              AVSEEK_FLAG_BACKWARD);
@@ -102,6 +96,7 @@ namespace player {
             if(audioPacketQueue_.total_bytes + videoPacketQueue_.total_bytes >= DEFAULT_BUFFER_SIZE){
                 //改变状态暂停播放，线程暂停读取 todo
                 LOGI("pause read thread");
+                //
                 continue;
             }
             if (packet == nullptr) {
@@ -157,6 +152,7 @@ namespace player {
 //            LOGI("receive frame ret : %s" ,av_err2str(ret));
             if(ret == 0){
                 LOGI("receive frame pts : %ld",frame->pts);
+//                frame->sample_rate =
                 //添加到队列中
                 PutFrameQueue(videoFrameQueue_, frame);
                 usleep(2000);
@@ -324,16 +320,17 @@ namespace player {
         if(endOfStream_){
 
         }
-        bool seekAble = false;
+        bool seekAble = true;
         preciseSeek_ = previousSeekTime > seekTime;
         LOGI("previousSeekTime : %ld,seekTime %ld" ,previousSeekTime,seekTime);
+        seekStatus_ = 1;
         //后退
-      /*  if(previousSeekTime > seekTime){
+        if(previousSeekTime > seekTime){
             //flush 队列
             FlushPacketQueue();
-            seekStatus_ = 1;
         }else{
-        }*/
+            // 刷出小于seek值已经解码的音频
+        }
 
         //从队列中拿到第一个frame, 并且不是flushframe
         AVFrame *frame = PeekFrameQueue(videoFrameQueue_);
@@ -381,7 +378,7 @@ namespace player {
             }
             UnrefFrameFromPool(videoFramePool_,frame);
         }
-//    frame_queue_flush(context->video_frame_queue, context->video_frame_pool);
+        FrameQueueFlush(videoFrameQueue_, videoFramePool_);
 //        frame_queue_flush(context->audio_frame_queue, context->audio_frame_pool);
 //        packet_queue_flush(context->audio_packet_queue, context->packet_pool);
 //        avcodec_flush_buffers(context->audio_codec_context);

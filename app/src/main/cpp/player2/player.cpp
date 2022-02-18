@@ -418,7 +418,7 @@ namespace player {
             LOGE("resume clip is invalid !!!");
             return;
         }
-        if(playImpl_->playStatus_ == PlayStatus::PAUSED){
+        if(playImpl_->playStatus_ == PlayStatus::PAUSED || playImpl_->playStatus_ == PlayStatus::SEEKING){
             playImpl_->Resume();
         }
         playerState_ = kResume;
@@ -439,6 +439,7 @@ namespace player {
     }
 
     void Player::SeekTo(int64_t timestampMs) {
+        dispatcher_->Flush();
         //根据时间戳找到对应的clip
         auto clips = mediaInfo_.clips;
         int index = mediaInfo_.GetClipTime(timestampMs);

@@ -85,6 +85,10 @@ public class MediaPlayerActivity extends AppCompatActivity implements View.OnCli
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         if(fromUser){
             MediaPlayer2 mediaPlayer = mediaPlayerView.getMediaPlayer();
+            if(mediaPlayer.isPlaying()){
+                mediaPlayerView.pauseView();
+                mediaPlayer.pause();
+            }
             long durationMs = mediaPlayer.getDurationMs();
             long seekTime = (long) (1.0f * progress / 100 * durationMs + 0);/*clip startTime*/
             Log.i(TAG,"durationMs : " + durationMs + ",seekTime : " + seekTime);

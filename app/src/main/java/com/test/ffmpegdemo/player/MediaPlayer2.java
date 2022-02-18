@@ -51,6 +51,10 @@ public class MediaPlayer2 extends NativeObjectRef {
         mMediaSourceSet = mediaClips != null;
     }
 
+    public boolean isMediaSourceSet(){
+        return mMediaSourceSet;
+    }
+
     /**
      * 添加播放片段
      * @param mediaClip
@@ -70,6 +74,10 @@ public class MediaPlayer2 extends NativeObjectRef {
             return;
         }
         nativePlay();
+    }
+
+    public boolean isPlaying(){
+        return nativeIsPlaying();
     }
 
     /**
@@ -98,10 +106,20 @@ public class MediaPlayer2 extends NativeObjectRef {
 
     }
 
-    public void seek(float timeMs) {
-
+    /**
+     * seek操作
+     * @param timeMs
+     */
+    public void seek(long timeMs) {
+        nativeSeek(timeMs);
     }
 
+    /**
+     * 获取时长
+     */
+    public long getDurationMs(){
+        return nativeGetDuration();
+    }
 
     private static native long nativeCreateMediaPlayer();
 
@@ -112,7 +130,9 @@ public class MediaPlayer2 extends NativeObjectRef {
     private native void nativeStop();
     private native void nativeResume();
     private native void nativePause();
-
+    private native void nativeSeek(long timeMs);
+    private native boolean nativeIsPlaying();
+    private native long nativeGetDuration();
     private native boolean nativeIsPrepare();
 
     private native void nativeCreateSurface(Surface surface);
@@ -120,6 +140,7 @@ public class MediaPlayer2 extends NativeObjectRef {
     private native void nativeSurfaceSizeChange(int width, int height);
 
     private native void nativeDestorySurface();
+
 
     public interface OnPlayStateListener{
 

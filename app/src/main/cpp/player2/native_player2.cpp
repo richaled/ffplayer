@@ -111,6 +111,14 @@ Java_com_test_ffmpegdemo_player_MediaPlayer2_nativePause(JNIEnv *env, jobject th
 }
 
 extern "C"
+JNIEXPORT void JNICALL
+Java_com_test_ffmpegdemo_player_MediaPlayer2_nativeSeek(JNIEnv *env, jobject thiz, jlong time_ms) {
+    std::shared_ptr<AndroidPlayer> player = JniUtils::CopyRefGet<AndroidPlayer>(
+            env, thiz, kPlayer2);
+    player->SeekTo(time_ms);
+}
+
+extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_test_ffmpegdemo_player_MediaPlayer2_nativeIsPrepare(JNIEnv *env, jobject thiz) {
     std::shared_ptr<AndroidPlayer> player = JniUtils::CopyRefGet<AndroidPlayer>(
@@ -143,6 +151,28 @@ Java_com_test_ffmpegdemo_player_MediaPlayer2_nativeDestorySurface(JNIEnv *env, j
     std::shared_ptr<AndroidPlayer> player = JniUtils::CopyRefGet<AndroidPlayer>(
             env, thiz, kPlayer2);
     player->DestorySurfaceWindow();
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_test_ffmpegdemo_player_MediaPlayer2_nativeIsPlaying(JNIEnv *env, jobject thiz) {
+    std::shared_ptr<AndroidPlayer> player = JniUtils::CopyRefGet<AndroidPlayer>(
+            env, thiz, kPlayer2);
+    if(player){
+        return player->IsPlaying() == JNI_TRUE;
+    }
+    return JNI_FALSE;
+}
+
+extern "C"
+JNIEXPORT jlong JNICALL
+Java_com_test_ffmpegdemo_player_MediaPlayer2_nativeGetDuration(JNIEnv *env, jobject thiz) {
+    std::shared_ptr<AndroidPlayer> player = JniUtils::CopyRefGet<AndroidPlayer>(
+            env, thiz, kPlayer2);
+    if(player){
+        return player->GetDuration();
+    }
+    return 0l;
 }
 
 

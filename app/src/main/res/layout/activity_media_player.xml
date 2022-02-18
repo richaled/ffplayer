@@ -5,10 +5,22 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:MediaPlayerView="http://schemas.android.com/tools">
 
+
+
+    <SeekBar
+        android:min="0"
+        android:max="100"
+        android:id="@+id/seek_bar"
+        android:layout_marginBottom="6dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
     <com.test.ffmpegdemo.player.MediaPlayerView
+        app:layout_constraintBottom_toTopOf="@+id/seek_bar"
         android:id="@+id/media_player_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         MediaPlayerView:usetextureview="false"/>
 
     <Button

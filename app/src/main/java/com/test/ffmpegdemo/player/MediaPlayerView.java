@@ -5,18 +5,23 @@ import android.content.res.TypedArray;
 import android.graphics.SurfaceTexture;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.TextureView;
+import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.test.ffmpegdemo.R;
 
-public class MediaPlayerView extends FrameLayout implements SurfaceHolder.Callback, TextureView.SurfaceTextureListener {
+public class MediaPlayerView extends FrameLayout implements SurfaceHolder.Callback, TextureView.SurfaceTextureListener, View.OnClickListener {
 
     private static final String TAG = MediaPlayerView.class.getName();
     private SurfaceView surfaceView;
@@ -24,6 +29,7 @@ public class MediaPlayerView extends FrameLayout implements SurfaceHolder.Callba
 
     private MediaPlayer2 mediaPlayer;
     private boolean useTextureView = false;
+    private ImageView imageView;
 
     public MediaPlayerView(@NonNull Context context) {
         super(context);
@@ -52,7 +58,23 @@ public class MediaPlayerView extends FrameLayout implements SurfaceHolder.Callba
             surfaceView.getHolder().addCallback(this);
             addView(surfaceView);
         }
+        imageView = new ImageView(context);
+        imageView.setImageResource(R.drawable.ic_play);
+        LayoutParams layoutParams = new LayoutParams(80, 80);
+        layoutParams.gravity = Gravity.CENTER;
+        addView(imageView,layoutParams);
+
         mediaPlayer = new MediaPlayer2();
+        imageView.setOnClickListener(this);
+        setTouchListener(new OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if(imageView.getVisibility() == GONE){
+                    imageView.setVisibility(VISIBLE);
+                }
+                return false;
+            }
+        });
     }
 
     //surface view
@@ -110,4 +132,24 @@ public class MediaPlayerView extends FrameLayout implements SurfaceHolder.Callba
         }
     }
 
+    @Override
+    public void onClick(View v) {
+        if(!mediaPlayer.isMediaSourceSet()){
+            Toast.makeText(getContext(),"请先设置播放数据源",Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if(mediaPlayer.isPlaying()){
+            mediaPlayer.pause();
+            imageView.setImageResource(R.drawable.ic_play);
+        }else {
+            if(!mediaPlayer.isPrepare()){
+                mediaPlayer.play();
+            }else {
+                mediaPlayer.resume();
+            }
+            imageView.setImageResource(R.drawable.ic_pause);
+        }
+        imageView.setVisibility(GONE);
+    }
 }

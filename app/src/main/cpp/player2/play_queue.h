@@ -7,15 +7,19 @@ namespace player{
     * @param size
     * @return
     */
-    PacketQueue* PacketQueueCreate(unsigned int size);
-    void PacketQueueFree(PacketQueue* queue);
-    int PacketPutInQueue(PacketQueue *queue, AVPacket *packet);
-    AVPacket *GetPacketFromQueue(PacketQueue *queue);
+    void CreatePacketQueue(PacketQueue &queue, unsigned int size);
+    int PutPacketInQueue(PacketQueue &queue, AVPacket *packet);
+    AVPacket *GetPacketFromQueue(PacketQueue &queue);
+    void PacketQueueFree(PacketQueue& queue);
 
-    PacketPool* PacketPoolCreate(int size);
-    void PacketPoolFree(PacketPool *pool);
-    AVPacket *GetPacketFromPool(PacketPool*pool);
-    void UnRefPacketFromPool(PacketPool*pool,AVPacket *packet);
+
+//    PacketPool* PacketPoolCreate(int size);
+    void CreatePacketPool(PacketPool &packetPool,int size);
+    void PacketPoolFree(PacketPool &pool);
+    AVPacket *GetPacketFromPool(PacketPool&pool);
+    void UnRefPacketFromPool(PacketPool&pool,AVPacket *packet);
+    void PacketQueueFlush(PacketQueue &queue,PacketPool &pool);
+    void PacketQueueFlush(PacketQueue &queue,PacketPool &pool);
 
 
     /**
@@ -23,9 +27,10 @@ namespace player{
      * @param size
      * @return
      */
-    FramePool* FramePoolCreate(int size);
-    AVFrame* GetFrameFromPool(FramePool *pool);
-    void UnrefFrameFromPool(FramePool *pool, AVFrame *frame);
+//    FramePool* FramePoolCreate(int size);
+    void CreateFramePool(FramePool &framePool, int size);
+    AVFrame* GetFrameFromPool(FramePool &pool);
+    void UnrefFrameFromPool(FramePool &pool, AVFrame *frame);
 
 
     /**
@@ -33,11 +38,15 @@ namespace player{
      * @param size
      * @return
      */
-    FrameQueue* FrameQueueCreate(unsigned int size);
-    void FrameQueueFree(FrameQueue *queue);
-    AVFrame* GetFrameQueue(FrameQueue *queue);
-    int PutFrameQueue(FrameQueue *queue, AVFrame *frame);
+    void CreateFrameQueue(FrameQueue &queue, unsigned int size);
+//    FrameQueue* FrameQueueCreate(unsigned int size);
+    void FrameQueueFree(FrameQueue &queue);
+    AVFrame* GetFrameQueue(FrameQueue &queue);
+    int PutFrameQueue(FrameQueue &queue, AVFrame *frame);
+    AVFrame* PeekFrameQueue(FrameQueue& queue);
+    void FrameQueueFlush(FrameQueue &queue, FramePool &pool);
 
-    }
+
+}
 
 

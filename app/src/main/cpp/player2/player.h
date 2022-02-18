@@ -66,6 +66,9 @@ namespace player {
         bool IsPrepare() const {
             return isPrepare_;
         };
+        bool IsPlaying() const {
+            return playImpl_ && playImpl_->playStatus_ == PlayStatus::PLAYING;
+        }
 
         void Resume();
 
@@ -73,13 +76,17 @@ namespace player {
 
         void Stop();
 
-        void SeekTo(double timestampMs);
+        void SeekTo(int64_t timestampMs);
 
         void Release();
 
         void Reset();
 
         int Start();
+
+        int64_t GetDuration() const {
+            return durationMs_;
+        }
 
         void CreateSurfaceWindow(void *window);
         void DestorySurfaceWindow();
@@ -99,8 +106,11 @@ namespace player {
         void OnStop();
         void OnResume();
         void OnPause();
+        void OnSeek(const std::shared_ptr<Event> &event);
+        void OnRenderSeekFrame();
         bool CreateGL();
         void OnRenderVideoFrame();
+        int DrawVideoFramePrepared();
         int DrawFrame();
         void CreateFrameBufferAndRender();
         void ReleaseFrame();
@@ -128,6 +138,10 @@ namespace player {
         std::mutex mutex_;
         std::condition_variable conditionVariable_;
         GLfloat *vertexCoordinate = nullptr;
+
+        int seekIndex_ = 0;
+        int64_t durationMs_ = 0;
+
 
     };
 

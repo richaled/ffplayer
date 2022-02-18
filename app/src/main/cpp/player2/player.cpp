@@ -29,10 +29,12 @@ namespace player {
 
     void Player::SetMediaSources(const MediaInfo &mediaInfo) {
         mediaInfo_ = mediaInfo;
+        durationMs_ = mediaInfo_.GetDuration();
     }
 
     void Player::AddMediaClip(const MediaClip &mediaClip) {
         mediaInfo_.clips.push_back(mediaClip);
+        durationMs_ = mediaInfo_.GetDuration();
     }
 
     void Player::Prepare(const Options &options) {
@@ -79,6 +81,14 @@ namespace player {
             }
             case kPlayerPause:{
                 OnPause();
+                break;
+            }
+            case kRenderSeek:{
+                OnSeek(event);
+                break;
+            }
+            case kRenderSeekRenderFrame:{
+                OnRenderSeekFrame();
                 break;
             }
         }
@@ -248,26 +258,34 @@ namespace player {
         }
     }
 
-    int Player::DrawFrame() {
-//        METHOD
+    int Player::DrawVideoFramePrepared() {
         if(playImpl_ == nullptr){
             LOGE("play impl is null !!!");
-            return -2;
+            return -1;
         }
-//        LOGI("draw frame current time %lld",GetSysCurrentTime());
-//        usleep(WAIT_FRAME_SLEEP_US);
-//        return 0;
         if (!eglCore_->MakeCurrent(renderSurface_)) {
             LOGE("MakeCurrent error: %d", eglGetError());
             return -1;
         }
+        //如果是文件尾，并且缓存中没有frame，返回-2
+
         if (playImpl_->videoFrame_ == nullptr) {
             //从队列中获取
             playImpl_->videoFrame_ = playImpl_->GetFromFrameQueue();
         }
+
         if(playImpl_->videoFrame_ == nullptr){
 //            LOGI("get queue frame is null");
             return -1;
+        }
+        return 0;
+    }
+
+    int Player::DrawFrame() {
+//        METHOD
+        int ret = DrawVideoFramePrepared();
+        if(ret != 0){
+            return ret;
         }
         int64_t videoFramePts = playImpl_->GetVideoFramePts();
 //        LOGI("videoFramePts : %ld， pts : %ld" ,videoFramePts, playImpl_->videoFrame_->pts);
@@ -418,6 +436,65 @@ namespace player {
             playImpl_->Pause();
         }
         playerState_ = kPause;
+    }
+
+    void Player::SeekTo(int64_t timestampMs) {
+        //根据时间戳找到对应的clip
+        auto clips = mediaInfo_.clips;
+        int index = mediaInfo_.GetClipTime(timestampMs);
+        if(index >= 0){
+            auto mediaClip = mediaInfo_.clips.at(index);
+            int64_t seekTime = mediaInfo_.GetVideoTime(index, 0);
+
+            LOGI("seek clips : %s, index : %d, seekTime %ld",mediaClip.ToString().c_str(),index,seekTime);
+
+            NewEvent(kRenderSeek, shared_from_this(), dispatcher_)
+                    ->SetData("kRenderSeekClip", mediaClip)
+                    ->SetData("kRenderSeekTime", (timestampMs - seekTime))
+                    ->SetData("kRenderSeekIndex", index)
+                    ->Post();
+        } else{
+            LOGE("seek clip index is -1");
+        }
+    }
+
+    void Player::OnSeek(const std::shared_ptr<Event> &event) {
+        int clipIndex = -1;
+        MediaClip mediaClip;
+        int64_t seekTime;
+        event->GetDataCopy("kRenderSeekIndex", clipIndex);
+        event->GetDataCopy("kRenderSeekClip", mediaClip);
+        event->GetDataCopy("kRenderSeekTime", seekTime);
+        LOGI("onseek clip : %s",mediaClip.ToString().c_str());
+        if(!mediaClip.IsValid()){
+            return;
+        }
+        currentClip_ = mediaClip;
+        if(clipIndex != seekIndex_){
+            //reset
+        }
+        seekIndex_ = clipIndex;
+        bool seekAble = playImpl_->SeekTo(seekTime);
+        LOGI("seekable : %d",seekAble);
+        if(seekAble){
+            NewEvent(kRenderSeekRenderFrame, shared_from_this(), dispatcher_)
+                    ->Post();
+        }
+    }
+
+    void Player::OnRenderSeekFrame() {
+        if(eglCore_ == nullptr){
+            return;
+        }
+        int ret = DrawVideoFramePrepared();
+        if(ret == 0){
+            CreateFrameBufferAndRender();
+            ReleaseFrame();
+        }else{
+            //通知完成
+//            NewEvent(kRenderSeekRenderFrame, shared_from_this(), dispatcher_)
+//                    ->Post();
+        }
     }
 
     EGLSurface Player::GetPlatformSurface(void *window) {

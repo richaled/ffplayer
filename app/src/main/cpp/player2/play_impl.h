@@ -34,11 +34,13 @@ namespace player {
 
         void Pause();
 
+        bool SeekTo(int64_t seekTime);
+
         PlayStatus GetPlayStaus() const{
             return playStatus_;
         }
 
-        AVFrame * GetFromFrameQueue() const {
+        AVFrame * GetFromFrameQueue(){
             return GetFrameQueue(videoFrameQueue_);
         }
 
@@ -66,13 +68,20 @@ namespace player {
         void DecodeVideo();
 
         void ClearQueues();
+
+        void FlushPacketQueue();
+
+        void ClearFrameQueue();
     private:
-        PacketQueue *audioPacketQueue_;
-        FrameQueue *audioFrameQueue_;
-        PacketQueue *videoPacketQueue_;
-        FrameQueue *videoFrameQueue_;
-        PacketPool *packetPool_;
-        FramePool *audioFramePool_;
+        PacketQueue audioPacketQueue_;
+        FrameQueue audioFrameQueue_;
+//        PacketQueue *videoPacketQueue_;
+        FrameQueue videoFrameQueue_;
+        PacketPool packetPool_;
+        FramePool audioFramePool_;
+
+        PacketQueue videoPacketQueue_;
+
 
         std::shared_ptr<FFContext> ffContext_;
 
@@ -88,9 +97,14 @@ namespace player {
 
         int c = 0;
         bool isHardWare_ = false;
+
+        int64_t seekToTime_ = 0;
+        bool preciseSeek_ = false; //精准seek
+        volatile uint8_t seekStatus_ = 0;
+
     public:
         PlayStatus playStatus_ = PlayStatus ::UNINIT;
-        FramePool *videoFramePool_;
+        FramePool videoFramePool_;
         AVFrame *videoFrame_ = nullptr;
         Clock *videoClock_;
     };

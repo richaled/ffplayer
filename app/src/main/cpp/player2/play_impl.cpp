@@ -16,14 +16,17 @@ namespace player {
     }
 
     int PlayImpl::Init(const test::MediaClip &meidaClip,const test::Options &options) {
-        audioPacketQueue_ = PacketQueueCreate(40);
-        audioFrameQueue_ = FrameQueueCreate(40);
-        videoPacketQueue_ = PacketQueueCreate(40);
-        videoFrameQueue_ = FrameQueueCreate(60);
 
-        packetPool_ = PacketPoolCreate(20);
-        videoFramePool_ = FramePoolCreate(8);
-        audioFramePool_ = FramePoolCreate(8);
+        CreateFrameQueue(videoFrameQueue_,40);
+        CreateFrameQueue(audioFrameQueue_,60);
+        CreatePacketQueue(videoPacketQueue_,40);
+        CreatePacketQueue(audioPacketQueue_,40);
+
+        THREAD_ID
+        CreatePacketPool(packetPool_,20);
+        CreateFramePool(videoFramePool_,8);
+        CreateFramePool(audioFramePool_,8);
+
 
         videoClock_ = clock_create();
         isHardWare_ = OptionsGet(options,test::OptionKey::kEnableHardware, false);
@@ -40,23 +43,35 @@ namespace player {
 
     void PlayImpl::Start() {
         auto readFunc = [&](){
-            ReadThread();
+//            ReadThread();
+           /* int count = 0;
+            while (1){
+                if(count > 40){
+                    break;
+                }
+                {
+                    std::unique_lock<std::mutex> lock(videoFrameQueue_->mutex);
+                    usleep(30000);
+                    count ++;
+                    LOGI("read thread count : %d",count);
+                    lock.unlock();
+                }
+            }*/
+
         };
-        readThread_ = std::thread(readFunc);
+        readThread_ = std::thread([this](){
+            ReadThread();
+        });
         //开启线程
         if(ffContext_->HasAudio()){
-            auto func = [&](){
-
-            };
-            audioThread_ = std::thread(func);
+            audioThread_ = std::thread([this](){
+            });
         }
 
         if(ffContext_->HasVideo()){
-            auto videoFunc = [&](){
-                //decode
+            videoThread_ = std::thread([this](){
                 DecodeVideo();
-            };
-            videoThread_ = std::thread(videoFunc);
+            });
         }
         playStatus_ = PlayStatus::PLAYING;
     }
@@ -64,7 +79,27 @@ namespace player {
     void PlayImpl::ReadThread() {
         AVPacket *packet = nullptr;
         while (!abortRequest){
-            if(audioPacketQueue_->total_bytes + videoPacketQueue_->total_bytes >= DEFAULT_BUFFER_SIZE){
+           /* {
+            std::unique_lock<std::mutex> lock(videoPacketQueue_->mutex);
+            LOGI("add video packet in queue");
+//            usleep(30000);
+            lock.unlock();
+            }
+            continue;*/
+
+            if(seekStatus_ == 1){
+                LOGI("read seeking ----");
+                ClearFrameQueue();
+                seekStatus_ = 2;
+                int seek_ret = av_seek_frame(ffContext_->formatContext_, -1, (int64_t) (seekToTime_ * AV_TIME_BASE / 1000),
+                                             AVSEEK_FLAG_BACKWARD);
+                if (seek_ret < 0) {
+                    LOGE("seek faild");
+                    continue;
+                }
+            }
+
+            if(audioPacketQueue_.total_bytes + videoPacketQueue_.total_bytes >= DEFAULT_BUFFER_SIZE){
                 //改变状态暂停播放，线程暂停读取 todo
                 LOGI("pause read thread");
                 continue;
@@ -75,16 +110,18 @@ namespace player {
             }
             int ret = av_read_frame(ffContext_->GetFormatContext(), packet);
             if(ret == 0){
-
 //                LOGI("read packet %ld,stream index = %d",packet->duration,packet->stream_index);
                 //如果是音频
                 if(packet->stream_index == ffContext_->GetAudioIndex()){
 
                 } else if(packet->stream_index == ffContext_->GetVideoIndex()){
-                    LOGI("add video queue %ld",packet->pos);
                     //添加到队列中
-                    PacketPutInQueue(videoPacketQueue_,packet);
+                    PutPacketInQueue(videoPacketQueue_,packet);
                     packet = nullptr;
+//                    std::unique_lock<std::mutex> lock(videoPacketQueue_->mutex);
+//                    LOGI("add video packet in queue %ld",packet->pos);
+//                    lock.unlock();
+//                    packet = nullptr;
                 }else{
                     UnRefPacketFromPool(packetPool_, packet);
                 }
@@ -104,10 +141,18 @@ namespace player {
     }
 
     void PlayImpl::DecodeVideo() {
+
+       /* while (1){
+            AVPacket *packet = GetPacketFromQueue(videoPacketQueue_);
+            if(packet == nullptr){
+                continue;
+            }
+            LOGI("get packet %ld",packet->pos);
+        }*/
+
         AVFrame* frame = GetFrameFromPool(videoFramePool_);
         int ret = 0;
         while (!abortRequest){
-            //111111
             ret = avcodec_receive_frame(ffContext_->videoCodecContext_, frame);
 //            LOGI("receive frame ret : %s" ,av_err2str(ret));
             if(ret == 0){
@@ -117,6 +162,7 @@ namespace player {
                 usleep(2000);
                 frame = GetFrameFromPool(videoFramePool_);
             }else if(ret == AVERROR(EAGAIN) || ret == AVERROR_EOF){
+                LOGI("start get packet");
                 AVPacket *packet = GetPacketFromQueue(videoPacketQueue_);
                 if(packet == nullptr){
 //                    LOGI("get queue packet is empty");
@@ -132,6 +178,14 @@ namespace player {
                         continue;
                     }
                 }
+                //seek
+                if(packet == &videoPacketQueue_.flush_packet){
+                    LOGI("decode flush packet");
+                    FrameQueueFlush(videoFrameQueue_,videoFramePool_);
+                    avcodec_flush_buffers(ffContext_->videoCodecContext_);
+                    continue;
+                }
+
                 ret = avcodec_send_packet(ffContext_->videoCodecContext_, packet);
                 UnRefPacketFromPool(packetPool_, packet);
                 if(ret < 0){
@@ -139,7 +193,7 @@ namespace player {
                     LOGE("send packet error %s",av_err2str(ret));
                     break;
                 }
-                LOGI("send packet success ");
+//                LOGI("send packet success ");
             }else if(ret == AVERROR(EINVAL)){
                 //回调错误 todo
                 LOGE("receive error %s",av_err2str(ret));
@@ -181,6 +235,10 @@ namespace player {
         }
         //clean queue
         ClearQueues();
+        if(readThread_.joinable()){
+            readThread_.join();
+        }
+
         //停止线程
         if(HasAudio()){
             if(audioThread_.joinable()){
@@ -213,7 +271,7 @@ namespace player {
                 if (audio_frame == nullptr) {
                     break;
                 }
-                if (audio_frame != &audioFrameQueue_->flush_frame) {
+                if (audio_frame != &audioFrameQueue_.flush_frame) {
                     UnrefFrameFromPool(audioFramePool_, audio_frame);
                 }
             }
@@ -222,7 +280,7 @@ namespace player {
                 if (packet == nullptr) {
                     break;
                 }
-                if (packet != &audioPacketQueue_->flush_packet) {
+                if (packet != &audioPacketQueue_.flush_packet) {
                     UnRefPacketFromPool(packetPool_, packet);
                 }
             }
@@ -230,7 +288,7 @@ namespace player {
         // clear context->video_frame video_frame_queue video_frame_packet
         if (HasVideo()) {
             if (videoFrame_ != NULL) {
-                if (videoFrame_ != &videoFrameQueue_->flush_frame) {
+                if (videoFrame_ != &videoFrameQueue_.flush_frame) {
                     UnrefFrameFromPool(videoFramePool_, videoFrame_);
                 }
             }
@@ -239,7 +297,7 @@ namespace player {
                 if (videoFrame_ == nullptr) {
                     break;
                 }
-                if (videoFrame_ != &videoFrameQueue_->flush_frame) {
+                if (videoFrame_ != &videoFrameQueue_.flush_frame) {
                     UnrefFrameFromPool(videoFramePool_,videoFrame_);
                 }
             }
@@ -248,11 +306,85 @@ namespace player {
                 if (packet == nullptr) {
                     break;
                 }
-                if (packet != &videoPacketQueue_->flush_packet) {
+                if (packet != &videoPacketQueue_.flush_packet) {
                     UnRefPacketFromPool(packetPool_,packet);
                 }
             }
         }
+    }
+
+    bool PlayImpl::SeekTo(int64_t seekTime) {
+        int64_t previousSeekTime = seekToTime_;
+        int64_t totalTime = ffContext_->formatContext_->duration / 1000;
+        seekTime = seekTime >= 0 ? seekTime : 0;
+        seekTime = seekTime <= totalTime ? seekTime : totalTime;
+        seekToTime_ = seekTime;
+
+        //如果是文件尾 todo
+        if(endOfStream_){
+
+        }
+        bool seekAble = false;
+        preciseSeek_ = previousSeekTime > seekTime;
+        LOGI("previousSeekTime : %ld,seekTime %ld" ,previousSeekTime,seekTime);
+        //后退
+      /*  if(previousSeekTime > seekTime){
+            //flush 队列
+            FlushPacketQueue();
+            seekStatus_ = 1;
+        }else{
+        }*/
+
+        //从队列中拿到第一个frame, 并且不是flushframe
+        AVFrame *frame = PeekFrameQueue(videoFrameQueue_);
+        if(frame && frame !=  &videoFrameQueue_.flush_frame){
+            int64_t current_time;
+            if(!isHardWare_){
+                current_time = av_rescale_q(frame->pts,
+                                               ffContext_->formatContext_->streams[ffContext_->videoIndex_]->time_base,
+                                               AV_TIME_BASE_Q) /1000;
+            } else{
+                current_time = frame->pts / 1000;
+            }
+            LOGI("seekToTime : %ld, current time : %ld",seekToTime_,current_time);
+            if(seekToTime_ > current_time){
+                //通知发送seek渲染帧消息
+                seekAble = true;
+                //callback seek
+            }
+        }
+        playStatus_ = SEEKING;
+        return seekAble;
+    }
+
+    void PlayImpl::FlushPacketQueue() {
+        if(HasVideo()){
+            PacketQueueFlush(videoPacketQueue_,packetPool_);
+        }
+        if(HasAudio()){
+            PacketQueueFlush(audioPacketQueue_,packetPool_);
+        }
+    }
+
+    void PlayImpl::ClearFrameQueue() {
+        LOGE("enter: %s", __func__);
+        while (1) {
+            if (videoFrameQueue_.count == 0) {
+                break;
+            }
+            AVFrame* frame = GetFrameQueue(videoFrameQueue_);
+            if (!frame) {
+                break;
+            }
+            if (frame == &videoFrameQueue_.flush_frame) {
+                break;
+            }
+            UnrefFrameFromPool(videoFramePool_,frame);
+        }
+//    frame_queue_flush(context->video_frame_queue, context->video_frame_pool);
+//        frame_queue_flush(context->audio_frame_queue, context->audio_frame_pool);
+//        packet_queue_flush(context->audio_packet_queue, context->packet_pool);
+//        avcodec_flush_buffers(context->audio_codec_context);
     }
 
 }

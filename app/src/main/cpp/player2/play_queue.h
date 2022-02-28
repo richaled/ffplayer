@@ -45,6 +45,7 @@ namespace player{
     int PutFrameQueue(FrameQueue &queue, AVFrame *frame);
     AVFrame* PeekFrameQueue(FrameQueue& queue);
     void FrameQueueFlush(FrameQueue &queue, FramePool &pool);
+    AVFrame *PeekLastFrame(FrameQueue &queue);
 
 
 }

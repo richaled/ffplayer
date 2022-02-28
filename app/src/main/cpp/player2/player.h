@@ -115,6 +115,8 @@ namespace player {
         void CreateFrameBufferAndRender();
         void ReleaseFrame();
         void Draw(int textureId);
+        int64_t GetMasterClock();
+        int64_t ComputeTargetDelay(int64_t  delay);
     protected:
         bool isPrepare_ = false;
         MediaInfo mediaInfo_;
@@ -134,15 +136,18 @@ namespace player {
         GLuint drawTextureId_;
         void *window_ = nullptr;
         Options options_;
+        int syncStrategy_ = SyncStrategy::EXTERNAL;
 
         std::mutex mutex_;
         std::condition_variable conditionVariable_;
         GLfloat *vertexCoordinate = nullptr;
+        GLfloat *textureCoordinate = nullptr;
 
         int seekIndex_ = 0;
         int64_t durationMs_ = 0;
-
-
+        int64_t lastPts_ = 0;
+        int64_t frameTime_ = -1;//当前帧显示时间
+        int remaingTime_ = 0;
     };
 
 }

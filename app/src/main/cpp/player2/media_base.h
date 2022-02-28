@@ -90,9 +90,14 @@ namespace test{
 
     }MediaInfo;
 
+    enum SyncStrategy{
+        AUDIO = 0, //音频同步
+        EXTERNAL = 1,//外部时钟
+    };
 
     enum class OptionKey{
         kEnableHardware = 1,//硬件编解码
+        kSyncStrategy = 2,//音视频同步策略，默认为音频同步
     };
 
     using Options = std::map<OptionKey, any>;

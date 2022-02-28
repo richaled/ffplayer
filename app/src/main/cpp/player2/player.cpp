@@ -11,6 +11,15 @@
 // 30 fps
 #define WAIT_FRAME_SLEEP_US 33333
 
+//同步阈值
+#define SYNC_THRESHOLD_MIN 40000
+#define SYNC_THRESHOLD_MAX 100000
+//一帧显示的最大时长 10s
+#define MAX_FRAME_DURATION 10000000
+//
+#define SYNC_FRAMEDUP_THRESHOLD 100000
+
+
 namespace player {
 
     Player::Player() {
@@ -43,6 +52,7 @@ namespace player {
             return;
         }
         options_ = options;
+        syncStrategy_ = OptionsGet(options,test::OptionKey::kSyncStrategy, SyncStrategy::AUDIO);
         NewEvent(kPlayerPrepare, shared_from_this(), dispatcher_)
                 ->SetData("kPlayerPrepare", 0)
                 ->Post();
@@ -125,6 +135,9 @@ namespace player {
             if(ret != 0){
                 LOGE("prepare init fail");
             }
+
+            //初始化
+
 //            usleep(WAIT_FRAME_SLEEP_US * 100);
             isPrepare_ = true;
         } else {
@@ -185,6 +198,7 @@ namespace player {
         }
         windowCreated_ = true;
         vertexCoordinate = GetDefaultVertexCoord();
+        textureCoordinate = GetDefalutTextureCoord();
         //create render
         if (!videoRender_) {
             videoRender_ = std::make_shared<OpenglRender>(surfaceWidth_, surfaceHeight_, DEFAULT_VERTEX_SHADER,
@@ -287,26 +301,54 @@ namespace player {
         if(ret != 0){
             return ret;
         }
+
         int64_t videoFramePts = playImpl_->GetVideoFramePts();
 //        LOGI("videoFramePts : %ld， pts : %ld" ,videoFramePts, playImpl_->videoFrame_->pts);
-        usleep(WAIT_FRAME_SLEEP_US);
-        CreateFrameBufferAndRender();
+//        usleep(WAIT_FRAME_SLEEP_US);
+//        CreateFrameBufferAndRender();
+//        ReleaseFrame();
+//        return 0;
+
+        //得到当前时间
+        int64_t time = clock_get_current_time();
+        LOGI("videoFramePts : %ld" ,videoFramePts);
+        if(frameTime_ == -1){
+            frameTime_ = time;
+        }
+
+        //计算前面一帧显示的时长
+        int64_t lastDuration = videoFramePts - lastPts_;
+        lastPts_ = videoFramePts;
+        //计算当前帧显示的时长
+        int64_t dealy = ComputeTargetDelay(lastDuration);
+        //得到当前的系统时间
+        LOGI("delay : %ld，currentTime ：%ld，lastDuration %ld",dealy,time,lastDuration);
+        if(time < frameTime_ + dealy){
+            remaingTime_ = FFMIN(frameTime_ + dealy - time, remaingTime_);
+            LOGI("remaining_time : %ld",remaingTime_);
+            usleep(remaingTime_);
+            //直接显示
+            LOGI("show frame");
+            CreateFrameBufferAndRender();
+        }else{
+            frameTime_ += dealy;
+            LOGI("frameTime_ : %ld",frameTime_);
+            if (dealy > 0 && time - frameTime_ > SYNC_THRESHOLD_MAX){
+                frameTime_ = time;
+            }
+            //更新视频时钟
+            clock_set(playImpl_->videoClock_, videoFramePts);
+            sync_clock_to_slave(playImpl_->extClock_,playImpl_->videoClock_);
+
+            //获取下一帧
+
+            //丢弃当前帧
+            LOGE("discard current frame !!!");
+//            DrawFrame();
+        }
         ReleaseFrame();
-        return 0;
-
-        //
-//        int64_t videoFramePts = playImpl_->GetVideoFramePts();
-        //如果有音频，就以音频为主时钟
-        int64_t masterClock;
-//        if (playImpl_->HasAudio()) {
-//            masterClock = 0;// todo
-//        } else {
-            masterClock = clock_get(playImpl_->videoClock_);
-//        }
-        LOGI("videoFramePts : %ld， pts : %ld,masterClock = %ld" ,videoFramePts, playImpl_->videoFrame_->pts,masterClock);
-
         //做音视频同步
-        int64_t diff = videoFramePts - masterClock;
+       /* int64_t diff = videoFramePts - masterClock;
         int64_t min = 25000;
         int64_t max = 1000000;
         if (diff > -min && diff < min) {
@@ -320,8 +362,43 @@ namespace player {
         } else {
             //release frame
             ReleaseFrame();
-        }
+        }*/
         return 0;
+    }
+
+    int64_t Player::GetMasterClock() {
+        int64_t masterClock = 0;
+        switch (syncStrategy_) {
+            case SyncStrategy::AUDIO:{
+                if(!playImpl_->HasAudio()){
+                    masterClock = clock_get(playImpl_->extClock_);
+                } else{
+                    masterClock = clock_get(playImpl_->videoClock_);
+                }
+                break;
+            }
+            case SyncStrategy::EXTERNAL:{
+                masterClock = clock_get(playImpl_->extClock_);
+                break;
+            }
+        }
+        return masterClock;
+    }
+
+    int64_t Player::ComputeTargetDelay(int64_t  delay) {
+        int64_t syncThreshold, diff = 0;
+        diff = clock_get(playImpl_->videoClock_) - GetMasterClock();
+        LOGI("diff = %ld",diff);
+        syncThreshold = FFMAX(SYNC_THRESHOLD_MIN,FFMIN(SYNC_THRESHOLD_MAX,delay));
+        //如果时钟之差是有效值，并且
+        if(abs(diff) < MAX_FRAME_DURATION){
+            delay = FFMAX(0,delay + diff);
+        }else if(diff >= syncThreshold && delay > SYNC_FRAMEDUP_THRESHOLD){
+            delay += diff;
+        } else if(diff >= syncThreshold){
+            delay = 2 * delay;
+        }
+        return delay;
     }
 
     void Player::CreateFrameBufferAndRender() {
@@ -349,7 +426,7 @@ namespace player {
         if (playImpl_->IsHardWare()) {
 
         } else {
-            auto texture_coordinate = rotate_soft_decode_media_encode_coordinate(0);
+            auto texture_coordinate = rotate_soft_decode_media_encode_coordinate(playImpl_->GetFrameRotate());
             auto ratio = playImpl_->videoFrame_->width * 1.F / playImpl_->videoFrame_->linesize[0];
             glm::mat4 scale_matrix = glm::mat4(ratio);
             drawTextureId_ = yuvRender_->DrawFrame(playImpl_->videoFrame_,glm::value_ptr(scale_matrix),

@@ -61,6 +61,10 @@ namespace player {
             return ffContext_->frameRotation_;
         }
 
+        int GetVideoPacketsSize(){
+            return videoPacketQueue_.size;
+        }
+
     private:
         //读取线程
         void ReadThread();
@@ -107,6 +111,8 @@ namespace player {
         FramePool videoFramePool_;
         AVFrame *videoFrame_ = nullptr;
         Clock *videoClock_;
+        Clock *extClock_;
+
     };
 
 }

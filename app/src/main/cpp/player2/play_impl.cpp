@@ -29,6 +29,7 @@ namespace player {
 
 
         videoClock_ = clock_create();
+        extClock_ = clock_create();
         isHardWare_ = OptionsGet(options,test::OptionKey::kEnableHardware, false);
         LOGI("hardware enable : %d",isHardWare_);
         ffContext_->InitFFmpeg();
@@ -42,23 +43,6 @@ namespace player {
     }
 
     void PlayImpl::Start() {
-        auto readFunc = [&](){
-//            ReadThread();
-           /* int count = 0;
-            while (1){
-                if(count > 40){
-                    break;
-                }
-                {
-                    std::unique_lock<std::mutex> lock(videoFrameQueue_->mutex);
-                    usleep(30000);
-                    count ++;
-                    LOGI("read thread count : %d",count);
-                    lock.unlock();
-                }
-            }*/
-
-        };
         readThread_ = std::thread([this](){
             ReadThread();
         });
@@ -158,7 +142,6 @@ namespace player {
                 usleep(2000);
                 frame = GetFrameFromPool(videoFramePool_);
             }else if(ret == AVERROR(EAGAIN) || ret == AVERROR_EOF){
-                LOGI("start get packet");
                 AVPacket *packet = GetPacketFromQueue(videoPacketQueue_);
                 if(packet == nullptr){
 //                    LOGI("get queue packet is empty");

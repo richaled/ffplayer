@@ -17,6 +17,16 @@ namespace player {
         return DEFAULT_VERTEX_COORDINATE;
     }
 
+    float* GetDefalutTextureCoord(){
+        static float DEFAULT_TEXTURE_COORDINATE[] = {
+                0.F, 0.F,
+                1.F, 0.F,
+                0.F, 1.F,
+                1.F, 1.F
+        };
+        return DEFAULT_TEXTURE_COORDINATE;
+    }
+
     float* GetScaleVertexCoord(const int sourceWidth, const int sourceHeight, const int targetWidth,
                                const int targetHeight, RenderFrame renderFrame = FIT) {
 

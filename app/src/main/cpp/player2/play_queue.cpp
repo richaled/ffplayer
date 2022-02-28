@@ -235,5 +235,8 @@ namespace player {
         lock.unlock();
     }
 
+    AVFrame *PeekLastFrame(FrameQueue &queue){
+        return queue.frames[queue.read_index];
+    }
 
 }

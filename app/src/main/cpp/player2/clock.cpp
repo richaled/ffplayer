@@ -27,7 +27,7 @@ namespace player{
             LOGI("pts is nan");
             return LONG_MAX;
         }
-        LOGI("get pts : %ld",clock->pts);
+//        LOGI("get pts : %ld",clock->pts);
         return clock->pts + clock_get_current_time();
     }
 
@@ -35,7 +35,7 @@ namespace player{
         clock->update_time = clock_get_current_time();
         clock->pts = pts;
         clock->pts_drift = pts - clock->update_time;
-        LOGI("set pts : %ld",clock->pts);
+//        LOGI("set pts : %ld",clock->pts);
     }
 
     void clock_free(Clock *clock) {
@@ -53,7 +53,7 @@ namespace player{
         int64_t slave_clock = clock_get(slave);
         //每10s同步一次
         if (slave_clock != LONG_MAX && (clock == LONG_MAX || fabs(clock - slave_clock) > 1000000)){
-            LOGI("sync slave clock ：%ld ,clock : %ld",slave_clock,clock);
+//            LOGI("sync slave clock ：%ld ,clock : %ld",slave_clock,clock);
             clock_set(c, slave_clock);
         }
     }

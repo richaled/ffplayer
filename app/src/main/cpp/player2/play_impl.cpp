@@ -183,6 +183,8 @@ namespace player {
                 break;
             }
         }
+        LOGI("video decode end..");
+        decodeEnd_ = true;
     }
 
     int64_t PlayImpl::GetVideoFramePts() {

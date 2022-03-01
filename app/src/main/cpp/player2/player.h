@@ -83,6 +83,8 @@ namespace player {
         void Reset();
 
         int Start();
+        //预加载下一个片段
+        void PrepredLoad();
 
         int64_t GetDuration() const {
             return durationMs_;
@@ -108,6 +110,8 @@ namespace player {
         void OnPause();
         void OnSeek(const std::shared_ptr<Event> &event);
         void OnRenderSeekFrame();
+        void OnComplete();
+        void OnPreLoad(const std::shared_ptr<Event> &event);
         bool CreateGL();
         void OnRenderVideoFrame();
         int DrawVideoFramePrepared();
@@ -117,6 +121,7 @@ namespace player {
         void Draw(int textureId);
         int64_t GetMasterClock();
         int64_t ComputeTargetDelay(int64_t  delay);
+        std::shared_ptr<PlayImpl> CreatePlayImpl(const MediaClip &mediaClip);
     protected:
         bool isPrepare_ = false;
         MediaInfo mediaInfo_;
@@ -128,6 +133,7 @@ namespace player {
         std::shared_ptr<EventDispatcher> dispatcher_;
         PlayerState playerState_ = PlayerState::kNone; //播放器状态
         MediaClip currentClip_;
+        MediaClip preLoadClip_;
         bool windowCreated_ = false;
         int frameWidth_,frameHeight_;
         int surfaceWidth_,surfaceHeight_;
@@ -148,6 +154,8 @@ namespace player {
         int64_t lastPts_ = 0;
         int64_t frameTime_ = -1;//当前帧显示时间
         int remaingTime_ = 0;
+        int clipIndex_ = 0;
+        std::vector<std::shared_ptr<PlayImpl>> playImpls_;
     };
 
 }

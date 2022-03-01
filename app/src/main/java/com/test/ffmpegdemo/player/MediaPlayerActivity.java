@@ -52,12 +52,19 @@ public class MediaPlayerActivity extends AppCompatActivity implements View.OnCli
             case R.id.test_btn:{
                 MediaPlayer2 mediaPlayer = mediaPlayerView.getMediaPlayer();
 
-                MediaClip[] mediaClips = new MediaClip[1];
+                MediaClip[] mediaClips = new MediaClip[2];
                 MediaClip mediaClip = new MediaClip();
-                mediaClip.path = "/sdcard/DCIM/one_piece.mp4";
-                mediaClip.timeRange = new MediaClip.TimeRange(0,60000);
+                mediaClip.path = "/sdcard/DCIM/export_fly.mp4";
+                mediaClip.timeRange = new MediaClip.TimeRange(0,14000);
                 mediaClip.type = 1;
                 mediaClips[0] = mediaClip;
+
+                MediaClip mediaClip2 = new MediaClip();
+                mediaClip2.path = "/sdcard/DCIM/one_piece.mp4";
+                mediaClip2.timeRange = new MediaClip.TimeRange(0,60000);
+                mediaClip2.type = 1;
+                mediaClips[1] = mediaClip2;
+
                 mediaPlayer.setMediaClipSource(mediaClips);
 
 //                Options options = new Options();

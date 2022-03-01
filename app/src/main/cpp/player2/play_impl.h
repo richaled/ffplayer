@@ -65,6 +65,10 @@ namespace player {
             return videoPacketQueue_.size;
         }
 
+        int GetVideoFrameSize(){
+            return videoFrameQueue_.count;
+        }
+
     private:
         //读取线程
         void ReadThread();
@@ -112,7 +116,7 @@ namespace player {
         AVFrame *videoFrame_ = nullptr;
         Clock *videoClock_;
         Clock *extClock_;
-
+        bool decodeEnd_= false;
     };
 
 }

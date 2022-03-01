@@ -39,11 +39,13 @@ namespace player {
     void Player::SetMediaSources(const MediaInfo &mediaInfo) {
         mediaInfo_ = mediaInfo;
         durationMs_ = mediaInfo_.GetDuration();
+        LOGI("medias : %s,duration : %ld",mediaInfo_.ToString().c_str(),durationMs_);
     }
 
     void Player::AddMediaClip(const MediaClip &mediaClip) {
         mediaInfo_.clips.push_back(mediaClip);
         durationMs_ = mediaInfo_.GetDuration();
+        LOGI("add medias : %s,duration : %ld",mediaInfo_.ToString().c_str(),durationMs_);
     }
 
     void Player::Prepare(const Options &options) {
@@ -54,7 +56,7 @@ namespace player {
         options_ = options;
         syncStrategy_ = OptionsGet(options,test::OptionKey::kSyncStrategy, SyncStrategy::AUDIO);
         NewEvent(kPlayerPrepare, shared_from_this(), dispatcher_)
-                ->SetData("kPlayerPrepare", 0)
+                ->SetData("kPlayerPrepare", clipIndex_)
                 ->Post();
     }
 
@@ -101,6 +103,14 @@ namespace player {
                 OnRenderSeekFrame();
                 break;
             }
+            case kPlayerComplete:{
+                OnComplete();
+                break;
+            }
+            case kPlayerPreLoad:{
+                OnPreLoad(event);
+                break;
+            }
         }
     }
 
@@ -122,29 +132,27 @@ namespace player {
 //            lock.unlock();
             return;
         }
-        if (!playImpl_) {
-            playImpl_ = std::make_shared<PlayImpl>();
-        }
-
         //如果设置了播放clip
         if (!mediaInfo_.IsEmpty()) {
             currentClip_ = mediaInfo_.clips[clipIndex];
-
-            int ret = playImpl_->Init(currentClip_, options_);
-            //notify prepare callback
-            if(ret != 0){
-                LOGE("prepare init fail");
-            }
-
-            //初始化
-
-//            usleep(WAIT_FRAME_SLEEP_US * 100);
-            isPrepare_ = true;
+            playImpl_ = CreatePlayImpl(currentClip_);
+            playImpls_.emplace_back(playImpl_);
         } else {
-//            LOGI("media info is empty");
+            LOGI("prepare media info is empty");
         }
+        isPrepare_ = true;
 //        lock.unlock();
 //        conditionVariable_.notify_all();
+    }
+
+    std::shared_ptr<PlayImpl> Player::CreatePlayImpl(const MediaClip &mediaClip) {
+        auto playImpl = std::make_shared<PlayImpl>();
+        int ret = playImpl->Init(mediaClip, options_);
+        //notify prepare callback
+        if(ret != 0){
+            LOGE("prepare init fail");
+        }
+        return playImpl;
     }
 
     void Player::CreateSurfaceWindow(void *window) {
@@ -226,7 +234,21 @@ namespace player {
         }
         NewEvent(kPlayerStart, shared_from_this(), dispatcher_)
                 ->Post();
+        PrepredLoad();
         return 0;
+    }
+
+    void Player::PrepredLoad() {
+        if (!windowCreated_) {
+            LOGE("window not created !!");
+            return;
+        }
+        int preLoadIndex = clipIndex_ + 1;
+        if(preLoadIndex < mediaInfo_.clips.size()){
+            NewEvent(kPlayerPreLoad, shared_from_this(), dispatcher_)
+                    ->SetData("PreLoadIndex",preLoadIndex)
+                    ->Post();
+        }
     }
 
     void Player::OnPlayStart(const std::shared_ptr<Event> &event) {
@@ -253,6 +275,7 @@ namespace player {
         if (playImpl_->GetPlayStaus() == PlayStatus::PLAYING) {
             //继续绘制还是等待
             int ret = DrawFrame();
+            LOGI("draw frame ret :%d",ret);
             if (ret == 0) {
                 //do nothing
                 NewEvent(kRenderVideoFrame, shared_from_this(), dispatcher_)
@@ -263,7 +286,8 @@ namespace player {
                 NewEvent(kRenderVideoFrame, shared_from_this(), dispatcher_)
                         ->Post();
             } else if (ret == -2) {
-
+                NewEvent(kPlayerComplete, shared_from_this(), dispatcher_)
+                        ->Post();
             }
         } else if (playImpl_->GetPlayStaus() == IDEL) {
             //等待
@@ -282,6 +306,9 @@ namespace player {
             return -1;
         }
         //如果是文件尾，并且缓存中没有frame，返回-2
+        if (playImpl_->decodeEnd_ && playImpl_->GetVideoFrameSize() == 0){
+            return -2;
+        }
 
         if (playImpl_->videoFrame_ == nullptr) {
             //从队列中获取
@@ -550,6 +577,7 @@ namespace player {
         currentClip_ = mediaClip;
         if(clipIndex != seekIndex_){
             //reset
+            //
         }
         seekIndex_ = clipIndex;
         bool seekAble = playImpl_->SeekTo(seekTime);
@@ -573,6 +601,29 @@ namespace player {
 //            NewEvent(kRenderSeekRenderFrame, shared_from_this(), dispatcher_)
 //                    ->Post();
         }
+    }
+
+    void Player::OnComplete() {
+        LOGI("OnComplete");
+        OnStop();
+        //得到当前播放的clip
+        clipIndex_ ++;
+        playImpl_ = playImpls_.at(clipIndex_);
+        currentClip_ = mediaInfo_.clips.at(clipIndex_);
+        //播放
+        Start();
+        //预加载下一个要播放的clip
+        PrepredLoad();
+    }
+
+    void Player::OnPreLoad(const std::shared_ptr<Event> &event) {
+        METHOD
+        int clipIndex = -1;
+        event->GetDataCopy("PreLoadIndex", clipIndex);
+        LOGI("preload index %d",clipIndex);
+        auto preLoadClip = mediaInfo_.clips[clipIndex];
+        auto playImpl = CreatePlayImpl(preLoadClip);
+        playImpls_.emplace_back(playImpl);
     }
 
     EGLSurface Player::GetPlatformSurface(void *window) {

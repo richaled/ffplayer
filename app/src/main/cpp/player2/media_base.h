@@ -88,6 +88,14 @@ namespace test{
             return duration;
         }
 
+        std::string ToString(){
+            std::string result;
+            for (auto clip : clips) {
+                result += clip.ToString();
+            }
+            return result;
+        }
+
     }MediaInfo;
 
     enum SyncStrategy{

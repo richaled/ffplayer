@@ -28,7 +28,7 @@ namespace player{
             return LONG_MAX;
         }
 //        LOGI("get pts : %ld",clock->pts);
-        return clock->pts + clock_get_current_time();
+        return clock->pts_drift + clock_get_current_time();
     }
 
     void clock_set(Clock *clock, int64_t pts) {
@@ -53,7 +53,7 @@ namespace player{
         int64_t slave_clock = clock_get(slave);
         //每10s同步一次
         if (slave_clock != LONG_MAX && (clock == LONG_MAX || fabs(clock - slave_clock) > 1000000)){
-//            LOGI("sync slave clock ：%ld ,clock : %ld",slave_clock,clock);
+            LOGI("sync slave clock ：%ld ,clock : %ld",slave_clock,clock);
             clock_set(c, slave_clock);
         }
     }

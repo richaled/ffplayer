@@ -54,5 +54,6 @@ namespace player{
 
      glm::vec3 texCoordToVertexCoord(glm::vec2 texCoord);
 
+    void SetUniformMatrix4f(GLuint programId,const char *name, int size, const GLfloat *matrix);
 }
 

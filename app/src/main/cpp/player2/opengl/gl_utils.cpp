@@ -242,6 +242,10 @@ GLuint CreateProgram(const char *pVertexShaderSource, const char *pFragShaderSou
         return glm::vec3(2 * texCoord.x - 1, 1 - 2 * texCoord.y, 0);
     }
 
+    void SetUniformMatrix4f(GLuint programId,const char *name, int size, const GLfloat *matrix){
+        GLint location = glGetUniformLocation(programId, name);
+        glUniformMatrix4fv(location, size, GL_FALSE, matrix);
+    }
 
 
 }

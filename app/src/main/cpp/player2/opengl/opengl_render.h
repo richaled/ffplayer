@@ -19,8 +19,8 @@ namespace player {
     };
 
     enum TextureType {
-        TEXTURE_OES = 0, //android eos 纹理
-        TEXTURE_2D
+        TEXTURE_2D = 0,
+        TEXTURE_OES = 1, //android eos 纹理
     };
 
     class OpenglRender {
@@ -43,7 +43,7 @@ namespace player {
         GLuint program_;
         int width_;
         int height_;
-        TextureType textureType_;
+        TextureType textureType_ = TextureType::TEXTURE_2D;
     };
 }
 

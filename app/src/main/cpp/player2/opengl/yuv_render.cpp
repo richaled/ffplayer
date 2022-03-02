@@ -1,3 +1,4 @@
+#include <log/log.h>
 #include "yuv_render.h"
 #include "gl_utils.h"
 #include "gl_info.h"
@@ -66,19 +67,12 @@ namespace player{
     }
 
     void YuvRender::CreateGLProgram(const int width, const int height, const char *fragment) {
-        program_ = CreateProgram(DEFAULT_VERTEX_MATRIX_SHADER,fragment);
-        GLuint vertexShader = LoadShader(GL_VERTEX_SHADER,DEFAULT_VERTEX_MATRIX_SHADER);
-        GLuint fragmentShader = LoadShader(GL_FRAGMENT_SHADER,fragment);
-        glAttachShader(program_, vertexShader);
-        glAttachShader(program_, fragmentShader);
-        Link(program_);
-        glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);
+        program_ = CreateProgram(DEFAULT_VERTEX_SHADER,fragment);
 
         vertexPosLocation_ = glGetAttribLocation(program_,"position");
         vertexTextureLocation_ = glGetAttribLocation(program_,"inputTextureCoordinate");
         textureMatrixLocation_ = glGetAttribLocation(program_,"textureMatrix");
-        glUseProgram(program_);
+//        glUseProgram(program_);
         uniformSamplers_[0] = glGetUniformLocation(program_, "texture_y");
         uniformSamplers_[1] = glGetUniformLocation(program_, "texture_u");
         uniformSamplers_[2] = glGetUniformLocation(program_, "texture_v");
@@ -91,11 +85,13 @@ namespace player{
         }
         glGenTextures(3,textures_);
         for (int i = 0; i < 3; i++) {
+            glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, textures_[i]);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glBindTexture(GL_TEXTURE_2D, GL_NONE);
         }
 
         glGenFramebuffers(1,&frameBufferId_);
@@ -103,6 +99,10 @@ namespace player{
         glBindTexture(GL_TEXTURE_2D,textureId_);
         glBindFramebuffer(GL_FRAMEBUFFER,frameBufferId_);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId_, 0);
         glBindTexture(GL_TEXTURE_2D, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -161,6 +161,7 @@ namespace player{
                 break;
             }
             default:
+                LOGE("yuv frame :%d is not support !!!",frame->format);
                 break;
         }
 
@@ -168,7 +169,7 @@ namespace player{
         glEnableVertexAttribArray(vertexPosLocation_);
         glVertexAttribPointer(vertexTextureLocation_, 2, GL_FLOAT, GL_FALSE, 0, texture_coordinate);
         glEnableVertexAttribArray(vertexTextureLocation_);
-        glUniformMatrix4fv(textureMatrixLocation_, 1, GL_FALSE, matrix);
+//        glUniformMatrix4fv(textureMatrixLocation_, 1, GL_FALSE, matrix);
         for (int i = 0; i < 3; i++) {
             glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, textures_[i]);
@@ -178,8 +179,9 @@ namespace player{
         glDisableVertexAttribArray(vertexPosLocation_);
         glDisableVertexAttribArray(vertexTextureLocation_);
 
-        glBindFramebuffer(GL_FRAMEBUFFER,0);
         glBindTexture(GL_TEXTURE_2D,0);
+        glBindFramebuffer(GL_FRAMEBUFFER,0);
+
         return textureId_;
     }
 

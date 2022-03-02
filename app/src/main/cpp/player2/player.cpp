@@ -17,8 +17,9 @@
 //一帧显示的最大时长 10s
 #define MAX_FRAME_DURATION 10000000
 //
-#define SYNC_FRAMEDUP_THRESHOLD 100000
-
+#define SYNC_FRAMEDUP_THRESHOLD 10000
+//刷新
+#define REFRESH_RATE 10000
 
 namespace player {
 
@@ -269,13 +270,12 @@ namespace player {
     void Player::OnRenderVideoFrame() {
 
         if (playImpl_ == nullptr) {
-            //绘制
-
+            LOGE("OnRenderVideoFrame but play context is null");
+            return;
         }
         if (playImpl_->GetPlayStaus() == PlayStatus::PLAYING) {
             //继续绘制还是等待
             int ret = DrawFrame();
-            LOGI("draw frame ret :%d",ret);
             if (ret == 0) {
                 //do nothing
                 NewEvent(kRenderVideoFrame, shared_from_this(), dispatcher_)
@@ -307,6 +307,7 @@ namespace player {
         }
         //如果是文件尾，并且缓存中没有frame，返回-2
         if (playImpl_->decodeEnd_ && playImpl_->GetVideoFrameSize() == 0){
+            LOGE("play impl  decode finish and no buffer");
             return -2;
         }
 
@@ -329,13 +330,7 @@ namespace player {
             return ret;
         }
 
-        int64_t videoFramePts = playImpl_->GetVideoFramePts();
-//        LOGI("videoFramePts : %ld， pts : %ld" ,videoFramePts, playImpl_->videoFrame_->pts);
-//        usleep(WAIT_FRAME_SLEEP_US);
-//        CreateFrameBufferAndRender();
-//        ReleaseFrame();
-//        return 0;
-
+       /* int64_t videoFramePts = playImpl_->GetVideoFramePts();
         //得到当前时间
         int64_t time = clock_get_current_time();
         LOGI("videoFramePts : %ld" ,videoFramePts);
@@ -353,7 +348,7 @@ namespace player {
         if(time < frameTime_ + dealy){
             remaingTime_ = FFMIN(frameTime_ + dealy - time, remaingTime_);
             LOGI("remaining_time : %ld",remaingTime_);
-            usleep(remaingTime_);
+            usleep(dealy);
             //直接显示
             LOGI("show frame");
             CreateFrameBufferAndRender();
@@ -372,6 +367,15 @@ namespace player {
             //丢弃当前帧
             LOGE("discard current frame !!!");
 //            DrawFrame();
+        }*/
+
+       if (remaingTime_ > 0){
+           usleep(remaingTime_);
+       }
+        remaingTime_ = REFRESH_RATE;
+        bool display = VideoDisplay();
+        if(!display){
+            display = VideoDisplay();
         }
         ReleaseFrame();
         //做音视频同步
@@ -391,6 +395,44 @@ namespace player {
             ReleaseFrame();
         }*/
         return 0;
+    }
+
+    bool Player::VideoDisplay() {
+        int64_t videoFramePts = playImpl_->GetVideoFramePts();
+        //得到当前时间
+        int64_t time = clock_get_current_time();
+        LOGI("videoFramePts : %ld" ,videoFramePts);
+        if(frameTime_ == -1){
+            frameTime_ = time;
+        }
+
+        //计算前面一帧显示的时长
+        int64_t lastDuration = videoFramePts - lastPts_;
+        lastPts_ = videoFramePts;
+        //计算当前帧显示的时长
+        int64_t dealy = ComputeTargetDelay(lastDuration);
+        //得到当前的系统时间
+        LOGI("delay : %ld，currentTime ：%ld，lastDuration %ld",dealy,time,lastDuration);
+        if(time < frameTime_ + dealy){
+            remaingTime_ = FFMIN(frameTime_ + dealy - time, remaingTime_);
+//            frameTime_ = time;
+            LOGI("remaining_time : %ld",remaingTime_);
+            //直接显示
+            LOGI("show frame");
+            CreateFrameBufferAndRender();
+            return true;
+        } else{
+            frameTime_ += dealy;
+            LOGI("frameTime_ : %ld",frameTime_);
+            if (dealy > 0 && time - frameTime_ > SYNC_THRESHOLD_MAX){
+                frameTime_ = time;
+            }
+            //更新视频时钟
+            clock_set(playImpl_->videoClock_, videoFramePts);
+            sync_clock_to_slave(playImpl_->extClock_,playImpl_->videoClock_);
+
+            return false;
+        }
     }
 
     int64_t Player::GetMasterClock() {
@@ -491,7 +533,7 @@ namespace player {
         }
         //回调上层, 可以拿到外部处理的纹理进行处理
 //        int
-//        LOGI("process image");
+        LOGI("process image %d",textureId);
         videoRender_->ProcessImage(textureId,vertexCoordinate,DEFAULT_TEXTURE_COORDINATE);
         if (!eglCore_->SwapBuffers(renderSurface_)) {
             LOGE("eglSwapBuffers error: %d", eglGetError());

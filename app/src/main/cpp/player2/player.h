@@ -122,6 +122,7 @@ namespace player {
         int64_t GetMasterClock();
         int64_t ComputeTargetDelay(int64_t  delay);
         std::shared_ptr<PlayImpl> CreatePlayImpl(const MediaClip &mediaClip);
+        bool VideoDisplay();
     protected:
         bool isPrepare_ = false;
         MediaInfo mediaInfo_;

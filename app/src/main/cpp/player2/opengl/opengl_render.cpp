@@ -1,5 +1,6 @@
 #include "opengl_render.h"
 #include <log/log.h>
+#include <GLES2/gl2ext.h>
 
 namespace player{
 
@@ -41,13 +42,6 @@ namespace player{
 
     void OpenglRender::CreateGLProgram(const char *vertex, const char *fragment) {
         program_ = CreateProgram(vertex,fragment);
-        GLuint vertexShader = LoadShader(GL_VERTEX_SHADER,vertex);
-        GLuint fragmentShader = LoadShader(GL_FRAGMENT_SHADER,fragment);
-        glAttachShader(program_, vertexShader);
-        glAttachShader(program_, fragmentShader);
-        Link(program_);
-        glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);
     }
 
     void OpenglRender::ActiveProgram() {
@@ -75,25 +69,27 @@ namespace player{
         auto positionAttribute = static_cast<GLuint>(glGetAttribLocation(program_, "position"));
         glEnableVertexAttribArray(positionAttribute);
         glVertexAttribPointer(positionAttribute, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), vertex_coordinate);
-        auto inputTextureAttribute = static_cast<GLuint>(glGetAttribLocation(program_, "inputTextureCoordinate"));
-        glEnableVertexAttribArray(inputTextureAttribute);
-        glVertexAttribPointer(inputTextureAttribute, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), texture_coordinate);
-        glUniformMatrix4fv(glGetUniformLocation(program_, "textureMatrix"), 1, GL_FALSE, texture_matrix);
+        auto textureCoordinateAttribute = static_cast<GLuint>(glGetAttribLocation(program_, "inputTextureCoordinate"));
+        glEnableVertexAttribArray(textureCoordinateAttribute);
+        glVertexAttribPointer(textureCoordinateAttribute, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), texture_coordinate);
+        SetUniformMatrix4f(program_,"textureMatrix", 1, texture_matrix);
 
-        //纹理
         glActiveTexture(GL_TEXTURE0);
 #if __ANDROID__
-        glBindTexture(textureType_ == TEXTURE_OES? TEXTURE_OES:TEXTURE_2D,textureId);
+        glBindTexture(textureType_ == TEXTURE_OES ? GL_TEXTURE_EXTERNAL_OES : GL_TEXTURE_2D, textureId);
+#elif __APPLE__
+        glBindTexture(GL_TEXTURE_2D, texture_id);
 #endif
-        setInt(program_,"inputImageTexture",0);
-
+        setInt(program_,"inputImageTexture", 0);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         glDisableVertexAttribArray(positionAttribute);
-        glDisableVertexAttribArray(inputTextureAttribute);
-
+        glDisableVertexAttribArray(textureCoordinateAttribute);
 #if __ANDROID__
-        glBindTexture(textureType_ == TEXTURE_OES? TEXTURE_OES:TEXTURE_2D,0);
+        glBindTexture(textureType_ == TEXTURE_OES ? GL_TEXTURE_EXTERNAL_OES : GL_TEXTURE_2D, 0);
+#elif __APPLE__
+        glBindTexture(GL_TEXTURE_2D, 0);
 #endif
+
     }
 
 }
